@@ -5,32 +5,160 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ωρολόγιο Πρόγραμμα Webex</title>
     <style>
-        :root { --primary-blue: #004a99; --hover-blue: #e3f2fd; --special-bg: #fffde7; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f4f4f9; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        h2 { color: var(--primary-blue); text-transform: uppercase; margin-bottom: 20px; text-align: center; }
-        
-        table { border-collapse: collapse; width: 100%; max-width: 1100px; background: white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border-radius: 12px; overflow: hidden; }
-        th { background: var(--primary-blue); color: white; padding: 15px; font-size: 0.85em; text-transform: uppercase; }
-        td { border: 1px solid #e0e0e0; padding: 12px; text-align: center; font-size: 0.85em; transition: 0.2s; cursor: pointer; }
-        td:first-child { background: #f9f9f9; font-weight: bold; color: #333; cursor: default; width: 110px; }
-        td:not(:first-child):hover { background: var(--hover-blue); color: var(--primary-blue); font-weight: bold; }
-        
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); }
-        .modal-content { background: white; margin: 10% auto; padding: 25px; border-radius: 15px; width: 350px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); text-align: center; }
-        .group-header { background: #eee; padding: 5px; margin: 15px 0 5px; font-weight: bold; border-radius: 5px; color: #555; font-size: 0.85em; }
-        .teacher-btn { display: block; width: 100%; padding: 12px; margin: 8px 0; background: #fff; border: 1px solid var(--primary-blue); color: var(--primary-blue); border-radius: 8px; cursor: pointer; font-size: 0.95em; transition: 0.2s; }
+        :root { 
+            --primary-blue: #004a99; 
+            --hover-blue: #e3f2fd; 
+            --special-bg: #fffde7; 
+            --border-color: #e0e0e0;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif; 
+            background: #f4f4f9; 
+            margin: 0;
+            padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        h2 { 
+            color: var(--primary-blue); 
+            text-transform: uppercase; 
+            margin: 20px 0; 
+            text-align: center; 
+            font-size: 1.2rem;
+            line-height: 1.4;
+        }
+
+        /* Responsive Container για τον πίνακα */
+        .table-container {
+            width: 100%;
+            max-width: 1100px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto; /* Επιτρέπει το πλάγιο scroll σε κινητά */
+            -webkit-overflow-scrolling: touch;
+        }
+
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+            min-width: 600px; /* Εξασφαλίζει ότι ο πίνακας δεν θα συμπιεστεί πολύ */
+        }
+
+        th { 
+            background: var(--primary-blue); 
+            color: white; 
+            padding: 12px 8px; 
+            font-size: 0.8rem; 
+            text-transform: uppercase; 
+            position: sticky;
+            top: 0;
+        }
+
+        td { 
+            border: 1px solid var(--border-color); 
+            padding: 10px 5px; 
+            text-align: center; 
+            font-size: 0.8rem; 
+            transition: 0.2s; 
+            cursor: pointer;
+            min-width: 100px;
+        }
+
+        /* Στήλη Ώρας */
+        td:first-child { 
+            background: #f9f9f9; 
+            font-weight: bold; 
+            color: #333; 
+            cursor: default; 
+            min-width: 90px;
+            position: sticky;
+            left: 0;
+            z-index: 5;
+            border-right: 2px solid var(--border-color);
+        }
+
+        td:not(:first-child):hover { 
+            background: var(--hover-blue); 
+            color: var(--primary-blue); 
+            font-weight: bold; 
+        }
+
+        /* Modal Styles */
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.6); 
+            backdrop-filter: blur(3px); 
+        }
+
+        .modal-content { 
+            background: white; 
+            margin: 15% auto; 
+            padding: 20px; 
+            border-radius: 15px; 
+            width: 90%; 
+            max-width: 350px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            text-align: center; 
+        }
+
+        .group-header { 
+            background: #eee; 
+            padding: 6px; 
+            margin: 15px 0 5px; 
+            font-weight: bold; 
+            border-radius: 5px; 
+            color: #555; 
+            font-size: 0.8rem; 
+        }
+
+        .teacher-btn { 
+            display: block; width: 100%; 
+            padding: 12px; margin: 8px 0; 
+            background: #fff; 
+            border: 1px solid var(--primary-blue); 
+            color: var(--primary-blue); 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 0.9rem; 
+            transition: 0.2s; 
+        }
+
         .teacher-btn:hover { background: var(--primary-blue); color: white; }
-        .close-btn { margin-top: 15px; background: none; border: none; color: #777; text-decoration: underline; cursor: pointer; }
+
+        .close-btn { 
+            margin-top: 15px; background: none; 
+            border: none; color: #777; 
+            text-decoration: underline; cursor: pointer; 
+        }
+
+        /* Media Queries για κινητά */
+        @media screen and (max-width: 600px) {
+            h2 { font-size: 1rem; }
+            td, th { padding: 8px 4px; font-size: 0.75rem; }
+            .modal-content { margin: 30% auto; }
+        }
     </style>
 </head>
 <body>
 
     <h2 id="dynamic-title">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</h2>
 
-    <table id="schedule-table">
-        <thead><tr id="header-row"></tr></thead>
-        <tbody id="table-body"></tbody>
-    </table>
+    <div class="table-container">
+        <table id="schedule-table">
+            <thead><tr id="header-row"></tr></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
 
     <div id="modal" class="modal">
         <div class="modal-content">
@@ -41,13 +169,8 @@
     </div>
 
     <script>
-        // ==========================================
-        // DATA & CONFIG
-        // ==========================================
-        
         const BASE_URL = "https://arsakeio.webex.com/meet/";
 
-        // 1. Το Ωρολόγιο Πρόγραμμα (Copy-Paste από Excel/CSV)
         const RAW_SCHEDULE = `
 ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
 8:10–8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ
@@ -57,10 +180,8 @@
 11:45-12:25,ΦΥΣΙΚΗ,ΙΣΤΟΡΙΑ,Β΄ ΞΕΝΗ ΓΛΩΣΣΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΦΥΣΙΚΗ
 12:30-13:10,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΚΠΑ,ΑΓΓΛΙΚΑ,ΜΣ/ΔΣ
 13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ
-14:10-14:50,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓΑΣΤΗΡΙΑ ΔΕΞΙΟΤΗΤΩΝ,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES
-        `;
+14:10-14:50,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓΑΣΤΗΡΙΑ ΔΕΞΙΟΤΗΤΩΝ,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
 
-        // 2. Οι Εκπαιδευτικοί (Department,Subject,Teacher1,Teacher2,...)
         const RAW_TEACHERS = `
 ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ Δ.,ΚΥΡΙΑΚΗ Κ.,ΜΗΛΙΟΠΟΥΛΟΥ Ζ.
 ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡ.,ΒΕΝΑΡΔΟΥ Χ.
@@ -80,10 +201,8 @@
 ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ Δ.
 ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
 ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ Κ.
-ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ Δ.
-        `;
+ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ Δ.`;
 
-        // 3. Τα ID των Εκπαιδευτικών (TeacherName,WebexID)
         const RAW_LINKS = `
 ΑΓΓΕΛΟΥ Γ.,aggelou.g
 ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡ.,alexopoulou.e
@@ -98,39 +217,34 @@
 ΜΠΑΡΛΑΣ Ν.,barlas.n
 ΠΕΤΡΑΚΗΣ Γ.,petrakis.g
 ΤΣΙΡΟΥ ΟΥΡ.,tsirou.o
-ΧΩΡΙΑΝΟΠΟΥΛΟΣ Κ.,chorianopoulos.k
-        `;
-
-        // ==========================================
-        // ENGINE
-        // ==========================================
+ΧΩΡΙΑΝΟΠΟΥΛΟΣ Κ.,chorianopoulos.k`;
 
         const linksMap = {};
         const teacherMap = {};
         let departmentName = "ΤΜΗΜΑ";
 
-        // Parse Links
-        RAW_LINKS.trim().split('\n').forEach(line => {
-            const parts = line.split(',').map(s => s.trim());
-            if(parts.length >= 2) linksMap[parts[0]] = parts[1];
-        });
+        // Parsing Data
+        function parseData() {
+            RAW_LINKS.trim().split('\n').forEach(line => {
+                const parts = line.split(',').map(s => s.trim());
+                if(parts.length >= 2) linksMap[parts[0]] = parts[1];
+            });
 
-        // Parse Teachers & Detect Department
-        const teacherLines = RAW_TEACHERS.trim().split('\n');
-        teacherLines.forEach((line, index) => {
-            const [dept, subject, ...teachers] = line.split(',').map(s => s.trim());
-            if(index === 0) departmentName = dept; // Extract department from first row
-            if(subject && teachers.length > 0) {
-                // Remove empty strings that might come from trailing commas in CSV
+            const teacherLines = RAW_TEACHERS.trim().split('\n');
+            teacherLines.forEach((line, index) => {
+                const parts = line.split(',').map(s => s.trim());
+                if(parts.length < 2) return;
+                const [dept, subject, ...teachers] = parts;
+                if(index === 0) departmentName = dept;
                 teacherMap[subject] = teachers.filter(t => t !== "");
-            }
-        });
-
-        // Update Title
-        document.getElementById('dynamic-title').innerText = `ΤΜΗΜΑ ${departmentName} - ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ`;
+            });
+            document.getElementById('dynamic-title').innerText = `ΤΜΗΜΑ ${departmentName} - ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ`;
+        }
 
         function initTable() {
             const lines = RAW_SCHEDULE.trim().split('\n');
+            if(lines.length === 0) return;
+
             const headers = lines[0].split(',').map(s => s.trim());
             const headerRow = document.getElementById('header-row');
             headers.forEach(h => {
@@ -149,11 +263,9 @@
                     if(index > 0 && cellText !== "") {
                         if(cellText.includes("ΑΓΓΛΙΚΑ")) {
                             td.onclick = () => openModal("ΑΓΓΛΙΚΑ");
-                            td.className = "special-cell"; 
                             td.style.backgroundColor = "var(--special-bg)";
                         } else if(cellText.includes("ΞΕΝΗ ΓΛΩΣΣΑ")) {
                             td.onclick = () => openModal("FOREIGN");
-                            td.className = "special-cell";
                             td.style.backgroundColor = "var(--special-bg)";
                         } else {
                             td.onclick = () => handleDirectLink(cellText);
@@ -180,8 +292,7 @@
 
             if(type === "ΑΓΓΛΙΚΑ") {
                 title.innerText = "ΑΓΓΛΙΚΑ";
-                const englishTeachers = teacherMap["ΑΓΓΛΙΚΑ"] || [];
-                englishTeachers.forEach(t => createBtn(container, t));
+                (teacherMap["ΑΓΓΛΙΚΑ"] || []).forEach(t => createBtn(container, t));
             } else {
                 title.innerText = "Β' ΞΕΝΗ ΓΛΩΣΣΑ";
                 ["ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"].forEach(lang => {
@@ -211,6 +322,8 @@
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         window.onclick = (e) => { if(e.target.className === 'modal') closeModal(); }
 
+        // Start
+        parseData();
         initTable();
     </script>
 </body>
