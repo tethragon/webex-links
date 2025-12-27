@@ -40,13 +40,13 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow: auto; /* Επιτρέπει το scroll προς όλες τις κατευθύνσεις */
-            max-height: 80vh; /* Περιορίζει το ύψος για να φαίνεται το sticky header */
+            overflow: auto;
+            max-height: 80vh;
             position: relative;
         }
 
         table { 
-            border-collapse: separate; /* Αλλαγή από collapse για καλύτερη λειτουργία του sticky */
+            border-collapse: separate; 
             border-spacing: 0;
             width: 100%; 
             min-width: 600px; 
@@ -57,9 +57,8 @@
             border-right: 1px solid var(--border-color);
         }
 
-        /* --- STICKY HEADERS & COLUMNS CONFIGURATION --- */
+        /* --- STICKY HEADERS & COLUMNS --- */
         
-        /* Όλα τα TH (Επικεφαλίδες Ημερών) */
         th { 
             background: var(--primary-blue); 
             color: white; 
@@ -68,15 +67,15 @@
             text-transform: uppercase; 
             position: sticky;
             top: 0;
-            z-index: 10; /* Πρέπει να είναι πάνω από τα απλά κελιά */
+            z-index: 10;
         }
 
-        /* Η πρώτη επικεφαλίδα (ΩΡΑ) - Το "Γωνιακό" Κελί */
+        /* Η πρώτη επικεφαλίδα (ΩΡΑ) */
         th:first-child {
             position: sticky;
             left: 0;
             top: 0;
-            z-index: 20; /* Το πιο ψηλό layer: Πάνω από όλα */
+            z-index: 20;
             border-right: 2px solid var(--border-color);
         }
 
@@ -89,7 +88,7 @@
             min-width: 90px;
             position: sticky;
             left: 0;
-            z-index: 5; /* Πάνω από τα απλά κελιά, κάτω από τα headers */
+            z-index: 5;
             border-right: 2px solid var(--border-color);
         }
 
@@ -100,13 +99,16 @@
             transition: 0.2s; 
             cursor: pointer;
             min-width: 100px;
-            background: white; /* Χρειάζεται background για να μην φαίνονται τα από πίσω στο scroll */
+            background: white;
         }
 
+        /* --- Η ΔΙΟΡΘΩΣΗ ΕΔΩ --- */
         td:not(:first-child):hover { 
             background: var(--hover-blue); 
             color: var(--primary-blue); 
-            font-weight: bold; 
+            /* Αφαιρέθηκε το font-weight: bold για να μην κουνιέται ο πίνακας */
+            /* Προστέθηκε text-shadow για να φαίνεται bold χωρίς να πιάνει χώρο */
+            text-shadow: 0 0 0.5px var(--primary-blue);
         }
 
         /* Modal Styles */
@@ -161,7 +163,6 @@
             text-decoration: underline; cursor: pointer; 
         }
 
-        /* Media Queries για κινητά */
         @media screen and (max-width: 600px) {
             h2 { font-size: 1rem; }
             td, th { padding: 8px 4px; font-size: 0.75rem; }
@@ -191,7 +192,6 @@
     <script>
         const BASE_URL = "https://arsakeio.webex.com/meet/";
 
-        // ΑΛΛΑΓΗ 2: Διόρθωση ονόματος σε 'ΕΡΓ. ΔΕΞ.'
         const RAW_SCHEDULE = `
 ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
 8:10–8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ
@@ -203,7 +203,6 @@
 13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ
 14:10-14:50,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
 
-        // ΑΛΛΑΓΗ 2: Διόρθωση ονόματος σε 'ΕΡΓ. ΔΕΞ.'
         const RAW_TEACHERS = `
 ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ Δ.,ΚΥΡΙΑΚΗ Κ.,ΜΗΛΙΟΠΟΥΛΟΥ Ζ.
 ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡ.,ΒΕΝΑΡΔΟΥ Χ.
@@ -245,7 +244,6 @@
         const teacherMap = {};
         let departmentName = "ΤΜΗΜΑ";
 
-        // Parsing Data
         function parseData() {
             RAW_LINKS.trim().split('\n').forEach(line => {
                 const parts = line.split(',').map(s => s.trim());
@@ -346,7 +344,6 @@
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         window.onclick = (e) => { if(e.target.className === 'modal') closeModal(); }
 
-        // Start
         parseData();
         initTable();
     </script>
