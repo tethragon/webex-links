@@ -40,16 +40,26 @@
             background: white;
             border-radius: 12px;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            overflow-x: auto; /* Επιτρέπει το πλάγιο scroll σε κινητά */
-            -webkit-overflow-scrolling: touch;
+            overflow: auto; /* Επιτρέπει το scroll προς όλες τις κατευθύνσεις */
+            max-height: 80vh; /* Περιορίζει το ύψος για να φαίνεται το sticky header */
+            position: relative;
         }
 
         table { 
-            border-collapse: collapse; 
+            border-collapse: separate; /* Αλλαγή από collapse για καλύτερη λειτουργία του sticky */
+            border-spacing: 0;
             width: 100%; 
-            min-width: 600px; /* Εξασφαλίζει ότι ο πίνακας δεν θα συμπιεστεί πολύ */
+            min-width: 600px; 
         }
 
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+        }
+
+        /* --- STICKY HEADERS & COLUMNS CONFIGURATION --- */
+        
+        /* Όλα τα TH (Επικεφαλίδες Ημερών) */
         th { 
             background: var(--primary-blue); 
             color: white; 
@@ -58,19 +68,19 @@
             text-transform: uppercase; 
             position: sticky;
             top: 0;
+            z-index: 10; /* Πρέπει να είναι πάνω από τα απλά κελιά */
         }
 
-        td { 
-            border: 1px solid var(--border-color); 
-            padding: 10px 5px; 
-            text-align: center; 
-            font-size: 0.8rem; 
-            transition: 0.2s; 
-            cursor: pointer;
-            min-width: 100px;
+        /* Η πρώτη επικεφαλίδα (ΩΡΑ) - Το "Γωνιακό" Κελί */
+        th:first-child {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 20; /* Το πιο ψηλό layer: Πάνω από όλα */
+            border-right: 2px solid var(--border-color);
         }
 
-        /* Στήλη Ώρας */
+        /* Η πρώτη στήλη (Οι Ώρες) */
         td:first-child { 
             background: #f9f9f9; 
             font-weight: bold; 
@@ -79,8 +89,18 @@
             min-width: 90px;
             position: sticky;
             left: 0;
-            z-index: 5;
+            z-index: 5; /* Πάνω από τα απλά κελιά, κάτω από τα headers */
             border-right: 2px solid var(--border-color);
+        }
+
+        td { 
+            padding: 10px 5px; 
+            text-align: center; 
+            font-size: 0.8rem; 
+            transition: 0.2s; 
+            cursor: pointer;
+            min-width: 100px;
+            background: white; /* Χρειάζεται background για να μην φαίνονται τα από πίσω στο scroll */
         }
 
         td:not(:first-child):hover { 
@@ -171,17 +191,19 @@
     <script>
         const BASE_URL = "https://arsakeio.webex.com/meet/";
 
+        // ΑΛΛΑΓΗ 2: Διόρθωση ονόματος σε 'ΕΡΓ. ΔΕΞ.'
         const RAW_SCHEDULE = `
 ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
 8:10–8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ
 9:00-9:45,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΓΥΜΝΑΣΤΙΚΗ,ΕΛΛΗΝΙΚΑ
-10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΕΡΓΑΣΤΗΡΙΑ ΔΕΞΙΟΤΗΤΩΝ
+10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΕΡΓ. ΔΕΞ.
 10:50-11:35,ΓΥΜΝΑΣΤΙΚΗ,ΓΥΜΝΑΣΤΙΚΗ,ΜΑΘΗΜΑΤΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΛΙΚΑ
 11:45-12:25,ΦΥΣΙΚΗ,ΙΣΤΟΡΙΑ,Β΄ ΞΕΝΗ ΓΛΩΣΣΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΦΥΣΙΚΗ
 12:30-13:10,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΚΠΑ,ΑΓΓΛΙΚΑ,ΜΣ/ΔΣ
 13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ
-14:10-14:50,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓΑΣΤΗΡΙΑ ΔΕΞΙΟΤΗΤΩΝ,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
+14:10-14:50,Β΄ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
 
+        // ΑΛΛΑΓΗ 2: Διόρθωση ονόματος σε 'ΕΡΓ. ΔΕΞ.'
         const RAW_TEACHERS = `
 ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ Δ.,ΚΥΡΙΑΚΗ Κ.,ΜΗΛΙΟΠΟΥΛΟΥ Ζ.
 ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡ.,ΒΕΝΑΡΔΟΥ Χ.
@@ -189,7 +211,7 @@
 ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ Γ.
 ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ Ν.
 ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ Γ.
-ΣΤ1,ΕΡΓΑΣΤΗΡΙΑ ΔΕΞΙΟΤΗΤΩΝ,ΠΕΤΡΑΚΗΣ Γ.
+ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ Γ.
 ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ
 ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ Γ.
 ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
@@ -282,6 +304,8 @@
             if(teachers && teachers.length > 0) {
                 const linkId = linksMap[teachers[0]];
                 if(linkId) window.open(BASE_URL + linkId, '_blank');
+            } else {
+                console.log("Δεν βρέθηκε καθηγητής για το μάθημα: " + subject);
             }
         }
 
