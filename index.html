@@ -393,6 +393,7 @@
         let activeLessonData = null;
         let debugMode = false;
         let debugOverride = null;
+        let timerInterval = null; // Μεταβλητή για τον έλεγχο του χρόνου
 
         function parseData() {
             RAW_LINKS.trim().split('\n').forEach(line => {
@@ -463,18 +464,18 @@
             }
         }
 
-        // --- ΒΕΛΤΙΩΜΕΝΗ ΛΟΓΙΚΗ ΕΛΕΓΧΟΥ (ΤΡΕΧΟΝ & ΕΠΟΜΕΝΟ) ---
+        // --- CORE LOGIC ---
         function checkCurrentLesson() {
             let now = new Date();
             let day = now.getDay(); 
             let currentMins = now.getHours() * 60 + now.getMinutes();
 
+            // Αν υπάρχει Debug, χρησιμοποιούμε τις δικές του τιμές
             if (debugOverride) {
                 day = debugOverride.day;
                 currentMins = debugOverride.hours * 60 + debugOverride.minutes;
             }
 
-            // Καθαρισμός όλων των styles
             document.querySelectorAll('.current-active-cell').forEach(el => el.classList.remove('current-active-cell'));
             document.querySelectorAll('.next-active-cell').forEach(el => el.classList.remove('next-active-cell'));
             
@@ -483,7 +484,6 @@
             
             activeLessonData = null;
             
-            // Αν είναι ΣΚ, απενεργοποίηση
             if(day === 0 || day === 6) {
                 infoTxt.innerHTML = "Καλό Σαββατοκύριακο!";
                 btn.disabled = true;
@@ -492,9 +492,8 @@
             }
 
             let foundCurrent = false;
-            let foundNext = null; // Θα αποθηκεύσουμε εδώ το επόμενο slot αν δεν βρεθεί τρέχον
+            let foundNext = null;
 
-            // 1. Ψάχνουμε πρώτα αν υπάρχει ΤΡΕΧΟΝ μάθημα
             for (const slot of timeSlots) {
                 if(currentMins >= slot.start && currentMins < slot.end) {
                     const selector = `td[data-row="${slot.rowIndex}"][data-col="${day}"]`;
@@ -507,24 +506,20 @@
                 }
             }
 
-            // 2. Αν ΔΕΝ βρέθηκε τρέχον, ψάχνουμε το ΑΜΕΣΩΣ ΕΠΟΜΕΝΟ
             if (!foundCurrent) {
                 for (const slot of timeSlots) {
-                    // Αν το slot ξεκινάει μετά από τώρα
                     if (slot.start > currentMins) {
                         const selector = `td[data-row="${slot.rowIndex}"][data-col="${day}"]`;
                         const cell = document.querySelector(selector);
-                        // Και το κελί έχει όντως μάθημα
                         if(cell && cell.innerText.trim() !== "") {
                             foundNext = true;
                             updateFooter(slot, cell, "NEXT");
-                            break; // Βρήκαμε το πρώτο επόμενο, σταματάμε.
+                            break;
                         }
                     }
                 }
 
                 if (!foundNext) {
-                    // Αν δεν υπάρχει ούτε τρέχον ούτε επόμενο (τέλος ημέρας)
                     infoTxt.innerHTML = "Το πρόγραμμα ολοκληρώθηκε για σήμερα.";
                     btn.disabled = true;
                     btn.innerText = "ΤΕΛΟΣ ΠΡΟΓΡΑΜΜΑΤΟΣ";
@@ -537,7 +532,6 @@
             const btn = document.getElementById('enter-lesson-btn');
             const infoTxt = document.getElementById('lesson-info-text');
 
-            // Επιλογή CSS class ανάλογα με τον τύπο
             if (type === "CURRENT") {
                 cell.classList.add('current-active-cell');
             } else {
@@ -546,7 +540,6 @@
             
             cell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-            // Εύρεση Καθηγητών
             let teachers = [];
             let isMulti = false;
             let teacherDisplay = "";
@@ -566,11 +559,8 @@
                 teacherDisplay = teachers.join(", ");
             }
 
-            // Διαμόρφωση κειμένου Footer
             let prefix = type === "CURRENT" ? "Τώρα:" : "Επόμενο:";
             let btnText = type === "CURRENT" ? "ΜΠΕΣ ΣΤΟ ΜΑΘΗΜΑ" : "ΜΠΕΣ ΣΤΟ ΕΠΟΜΕΝΟ";
-            
-            // Αν είναι επόμενο, δείχνουμε σε πόση ώρα ξεκινάει (προαιρετικά, εδώ δείχνουμε την ώρα έναρξης)
             let timeLabel = slot.label;
             
             infoTxt.innerHTML = `
@@ -610,12 +600,58 @@
         function applyDebugTime() {
             const d = parseInt(document.getElementById('debug-day').value);
             const t = document.getElementById('debug-time').value;
-            if(!t) { alert("Time required"); return; }
+            if(!t) { alert("Παρακαλώ επιλέξτε ώρα"); return; }
             const [h, m] = t.split(':').map(Number);
+            
             debugOverride = { day: d, hours: h, minutes: m };
             checkCurrentLesson();
+            
+            // Επανεκκίνηση του χρονομέτρου για να μετράει από το 0 το νέο λεπτό
+            restartTimer(); 
         }
-        function resetDebug() { debugOverride = null; checkCurrentLesson(); }
+
+        function resetDebug() {
+            debugOverride = null;
+            checkCurrentLesson();
+            restartTimer();
+            alert("Επαναφορά σε πραγματικό χρόνο.");
+        }
+        
+        // --- Timer Control ---
+        function startTimer() {
+            // Εκτελείται κάθε 60 δευτερόλεπτα (60000ms)
+            timerInterval = setInterval(() => {
+                
+                // Αν υπάρχει debug mode, προχωράμε την εικονική ώρα
+                if (debugOverride) {
+                    debugOverride.minutes++;
+                    if (debugOverride.minutes >= 60) {
+                        debugOverride.minutes = 0;
+                        debugOverride.hours++;
+                        // Απλό rollover ημέρας αν περάσει το 24ωρο
+                        if (debugOverride.hours >= 24) {
+                            debugOverride.hours = 0;
+                            debugOverride.day = (debugOverride.day + 1) % 7;
+                            document.getElementById('debug-day').value = debugOverride.day;
+                        }
+                    }
+                    
+                    // Ενημέρωση του input για να βλέπει ο χρήστης την αλλαγή
+                    const hStr = String(debugOverride.hours).padStart(2, '0');
+                    const mStr = String(debugOverride.minutes).padStart(2, '0');
+                    document.getElementById('debug-time').value = `${hStr}:${mStr}`;
+                }
+
+                // Πάντα ελέγχουμε το μάθημα (είτε πραγματικός χρόνος είτε debug)
+                checkCurrentLesson();
+                
+            }, 60000); 
+        }
+        
+        function restartTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTimer();
+        }
 
         function handleDirectLink(subject) {
             const teachers = teacherMap[subject];
@@ -664,7 +700,7 @@
         parseData();
         initTable();
         checkCurrentLesson();
-        setInterval(checkCurrentLesson, 60000);
+        startTimer(); // Ξεκινάμε το ρολόι κατά την εκκίνηση
     </script>
 </body>
 </html>
