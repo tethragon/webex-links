@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="el">
+<!-- v15 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -42,8 +43,8 @@
             text-align: center; 
             font-size: 1.2rem;
             letter-spacing: 1px;
-            user-select: none; /* Να μην επιλέγεται το κείμενο στα πολλά κλικ */
-            cursor: pointer; /* Για να φαίνεται ότι κάτι κάνει */
+            user-select: none; 
+            cursor: pointer; 
         }
 
         .schedule-card {
@@ -80,7 +81,6 @@
             font-size: 0.85rem; 
         }
 
-        /* Z-INDEX Fixes */
         th:first-child {
             position: sticky;
             left: 0;
@@ -396,11 +396,8 @@
         let departmentName = "ΤΜΗΜΑ";
         let timeSlots = []; 
         let activeLessonData = null;
-        let debugMode = false;
         let debugOverride = null;
         let timerInterval = null;
-        
-        // --- NEW: SECRET TAP VARIABLES ---
         let debugTapCount = 0;
         let debugTapTimer = null;
 
@@ -549,7 +546,7 @@
 
             let teachers = [];
             let isMulti = false;
-            let teacherDisplay = teachers.join(", ");
+            let teacherDisplay = "";
 
             if (subject.includes("ΑΓΓΛΙΚΑ")) {
                 teachers = teacherMap["ΑΓΓΛΙΚΑ"] || [];
@@ -597,21 +594,15 @@
             }
         }
 
-        // --- NEW: SECRET TAP HANDLER ---
         function handleSecretTap() {
             debugTapCount++;
-            
-            // Αν έχουν περάσει 5 χτυπήματα
             if (debugTapCount >= 5) {
                 toggleDebugPanel();
-                debugTapCount = 0; // Reset
+                debugTapCount = 0; 
                 clearTimeout(debugTapTimer);
             } else {
-                // Reset counter αν δεν πατηθεί ξανά μέσα σε 1 δευτερόλεπτο
                 clearTimeout(debugTapTimer);
-                debugTapTimer = setTimeout(() => {
-                    debugTapCount = 0;
-                }, 1000);
+                debugTapTimer = setTimeout(() => { debugTapCount = 0; }, 1000);
             }
         }
 
@@ -620,13 +611,11 @@
             const isVisible = (p.style.display === "block");
             p.style.display = isVisible ? "none" : "block";
             resizeIframe();
-            // Μικρή ειδοποίηση για να καταλάβει ο χρήστης στο κινητό ότι κάτι έγινε
-            if (!isVisible) alert("Debug Mode Enabled"); 
         }
 
-        // Keep PageUp for Desktop
+        // UPDATE: ΑΛΛΑΓΗ ΠΛΗΚΤΡΟΥ ΑΠΟ PageUp ΣΕ ΑΣΤΕΡΑΚΙ (*)
         window.addEventListener('keydown', (e) => {
-            if(e.key === "PageUp") {
+            if(e.key === "*") {
                 toggleDebugPanel();
             }
         });
