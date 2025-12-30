@@ -10,55 +10,57 @@
             --hover-blue: #e3f2fd; 
             --special-bg: #fffde7; 
             --border-color: #e0e0e0;
-            
-            /* Styles για το ΤΡΕΧΟΝ μάθημα (Active) */
             --active-cell-bg: #ffe0b2; 
             --active-cell-border: #f57c00;
-
-            /* Styles για το ΕΠΟΜΕΝΟ μάθημα (Next) */
             --next-cell-bg: #e3f2fd;
             --next-cell-border: #004a99;
-
             --panel-bg: #f8f9fa; 
         }
 
         * { box-sizing: border-box; }
 
-        body { 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            background: #eceff1; 
+        html, body {
             margin: 0;
-            padding: 15px;
+            padding: 0;
+            height: auto; 
+            background: #eceff1; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            overflow-y: auto; 
+        }
+
+        body { 
+            padding: 10px;
             display: flex; 
             flex-direction: column; 
             align-items: center; 
-            min-height: 100vh;
         }
 
         h2 { 
             color: var(--primary-blue); 
             text-transform: uppercase; 
-            margin: 10px 0 20px; 
+            margin: 5px 0 15px; 
             text-align: center; 
-            font-size: 1.3rem;
+            font-size: 1.2rem;
             letter-spacing: 1px;
+            user-select: none; /* Να μην επιλέγεται το κείμενο στα πολλά κλικ */
+            cursor: pointer; /* Για να φαίνεται ότι κάτι κάνει */
         }
 
-        /* --- UNIFIED CARD WRAPPER --- */
         .schedule-card {
             width: 100%;
             max-width: 1100px;
             background: white;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
             overflow: hidden; 
             display: flex;
             flex-direction: column;
+            margin-bottom: 5px; 
         }
 
         .table-scroll-area {
             overflow: auto;
-            max-height: 60vh;
+            max-height: 70vh; 
             width: 100%;
             position: relative;
         }
@@ -73,9 +75,18 @@
         th, td {
             border-bottom: 1px solid var(--border-color);
             border-right: 1px solid var(--border-color);
-            padding: 12px 8px; 
+            padding: 10px 6px; 
             text-align: center; 
             font-size: 0.85rem; 
+        }
+
+        /* Z-INDEX Fixes */
+        th:first-child {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 30;
+            border-right: 2px solid var(--border-color);
         }
 
         th { 
@@ -84,16 +95,8 @@
             text-transform: uppercase; 
             position: sticky;
             top: 0;
-            z-index: 10;
-            font-weight: 600;
-        }
-
-        th:first-child {
-            position: sticky;
-            left: 0;
-            top: 0;
             z-index: 20;
-            border-right: 2px solid var(--border-color);
+            font-weight: 600;
         }
 
         td:first-child { 
@@ -102,7 +105,7 @@
             color: #444; 
             position: sticky;
             left: 0;
-            z-index: 5;
+            z-index: 15;
             border-right: 2px solid var(--border-color);
         }
 
@@ -118,7 +121,6 @@
             text-shadow: 0 0 0.5px var(--primary-blue);
         }
 
-        /* Highlight για το ΤΡΕΧΟΝ μάθημα */
         .current-active-cell {
             background-color: var(--active-cell-bg) !important;
             border: 2px solid var(--active-cell-border) !important;
@@ -128,7 +130,6 @@
             z-index: 6;
         }
 
-        /* Highlight για το ΕΠΟΜΕΝΟ μάθημα */
         .next-active-cell {
             background-color: var(--next-cell-bg) !important;
             border: 2px dashed var(--next-cell-border) !important;
@@ -138,27 +139,26 @@
             z-index: 6;
         }
 
-        /* --- FOOTER / INFO PANEL --- */
         .status-footer {
             background: var(--panel-bg);
             border-top: 1px solid #ddd;
-            padding: 15px 25px;
+            padding: 12px 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
         .status-text {
             flex: 1;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             color: #555;
-            line-height: 1.4;
+            line-height: 1.3;
         }
 
         .status-text strong {
             color: #333;
-            font-size: 1.1rem;
+            font-size: 1rem;
         }
         
         .status-teacher {
@@ -171,7 +171,7 @@
             background-color: var(--primary-blue);
             color: white;
             border: none;
-            padding: 10px 24px;
+            padding: 8px 20px;
             font-size: 0.9rem;
             border-radius: 50px; 
             cursor: pointer;
@@ -179,7 +179,7 @@
             font-weight: 600;
             box-shadow: 0 4px 6px rgba(0,40,100,0.15);
             white-space: nowrap;
-            min-width: 180px;
+            min-width: 160px;
         }
 
         .enter-btn:hover:not(:disabled) {
@@ -196,7 +196,6 @@
             transform: none;
         }
 
-        /* --- DEBUG PANEL --- */
         #debug-panel {
             display: none;
             margin-top: 20px;
@@ -206,12 +205,23 @@
             border-radius: 8px;
             font-size: 0.8rem;
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            white-space: nowrap; 
         }
         
-        #debug-panel select, #debug-panel input { padding: 5px; border-radius: 4px; border:none; }
-        #debug-panel button { padding: 5px 10px; background: #ff9800; border:none; border-radius:4px; font-weight:bold; cursor:pointer;}
+        .time-input {
+            width: 45px;
+            padding: 5px;
+            border-radius: 4px;
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+        }
 
-        /* Modal Styles */
+        #debug-panel select { padding: 5px; border-radius: 4px; border:none; background:#eceff1; color:#333; font-weight:bold; }
+        #debug-panel button { padding: 5px 10px; background: #ff9800; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-left: 5px;}
+
         .modal { 
             display: none; 
             position: fixed; 
@@ -256,41 +266,35 @@
         }
 
         @media screen and (max-width: 600px) {
-            body { padding: 10px; }
-            h2 { font-size: 1.1rem; }
-            .status-footer { flex-direction: column; text-align: center; gap: 15px; padding: 15px; }
+            body { padding: 5px; }
+            h2 { font-size: 1rem; margin: 5px 0 10px; }
+            .status-footer { flex-direction: column; text-align: center; gap: 10px; padding: 10px; }
             .enter-btn { width: 100%; padding: 12px; }
             .modal-content { margin: 25vh auto; }
+            #debug-panel { white-space: normal; text-align: center; } 
         }
     </style>
 </head>
 <body>
 
-    <h2 id="dynamic-title">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</h2>
+    <h2 id="dynamic-title" onclick="handleSecretTap()">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</h2>
 
     <div class="schedule-card">
-        
         <div class="table-scroll-area">
             <table id="schedule-table">
                 <thead><tr id="header-row"></tr></thead>
                 <tbody id="table-body"></tbody>
             </table>
         </div>
-
         <div class="status-footer">
-            <div class="status-text" id="lesson-info-text">
-                Αναμονή για ενημέρωση...
-            </div>
-            <button id="enter-lesson-btn" class="enter-btn" disabled onclick="enterCurrentLesson()">
-                ΔΕΝ ΥΠΑΡΧΕΙ ΜΑΘΗΜΑ
-            </button>
+            <div class="status-text" id="lesson-info-text">Αναμονή...</div>
+            <button id="enter-lesson-btn" class="enter-btn" disabled onclick="enterCurrentLesson()">ΔΕΝ ΥΠΑΡΧΕΙ ΜΑΘΗΜΑ</button>
         </div>
-
     </div>
 
     <div id="debug-panel">
-        <strong>DEBUG MODE: </strong>
-        Day: <select id="debug-day">
+        <strong>DEBUG: </strong>
+        <select id="debug-day">
             <option value="1">Δευτέρα</option>
             <option value="2">Τρίτη</option>
             <option value="3">Τετάρτη</option>
@@ -299,7 +303,10 @@
             <option value="6">Σάββατο</option>
             <option value="0">Κυριακή</option>
         </select>
-        Time: <input type="time" id="debug-time">
+        
+        <input type="number" id="debug-hour" class="time-input" min="0" max="23" placeholder="HH" value="08"> : 
+        <input type="number" id="debug-minute" class="time-input" min="0" max="59" placeholder="MM" value="00">
+        
         <button onclick="applyDebugTime()">SET</button>
         <button onclick="resetDebug()" style="background:#546e7a;">RESET</button>
     </div>
@@ -391,6 +398,11 @@
         let activeLessonData = null;
         let debugMode = false;
         let debugOverride = null;
+        let timerInterval = null;
+        
+        // --- NEW: SECRET TAP VARIABLES ---
+        let debugTapCount = 0;
+        let debugTapTimer = null;
 
         function parseData() {
             RAW_LINKS.trim().split('\n').forEach(line => {
@@ -461,7 +473,6 @@
             }
         }
 
-        // --- ΒΕΛΤΙΩΜΕΝΗ ΛΟΓΙΚΗ ΕΛΕΓΧΟΥ (ΤΡΕΧΟΝ & ΕΠΟΜΕΝΟ) ---
         function checkCurrentLesson() {
             let now = new Date();
             let day = now.getDay(); 
@@ -472,7 +483,6 @@
                 currentMins = debugOverride.hours * 60 + debugOverride.minutes;
             }
 
-            // Καθαρισμός όλων των styles
             document.querySelectorAll('.current-active-cell').forEach(el => el.classList.remove('current-active-cell'));
             document.querySelectorAll('.next-active-cell').forEach(el => el.classList.remove('next-active-cell'));
             
@@ -481,7 +491,6 @@
             
             activeLessonData = null;
             
-            // Αν είναι ΣΚ, απενεργοποίηση
             if(day === 0 || day === 6) {
                 infoTxt.innerHTML = "Καλό Σαββατοκύριακο!";
                 btn.disabled = true;
@@ -490,9 +499,8 @@
             }
 
             let foundCurrent = false;
-            let foundNext = null; // Θα αποθηκεύσουμε εδώ το επόμενο slot αν δεν βρεθεί τρέχον
+            let foundNext = null;
 
-            // 1. Ψάχνουμε πρώτα αν υπάρχει ΤΡΕΧΟΝ μάθημα
             for (const slot of timeSlots) {
                 if(currentMins >= slot.start && currentMins < slot.end) {
                     const selector = `td[data-row="${slot.rowIndex}"][data-col="${day}"]`;
@@ -505,24 +513,20 @@
                 }
             }
 
-            // 2. Αν ΔΕΝ βρέθηκε τρέχον, ψάχνουμε το ΑΜΕΣΩΣ ΕΠΟΜΕΝΟ
             if (!foundCurrent) {
                 for (const slot of timeSlots) {
-                    // Αν το slot ξεκινάει μετά από τώρα
                     if (slot.start > currentMins) {
                         const selector = `td[data-row="${slot.rowIndex}"][data-col="${day}"]`;
                         const cell = document.querySelector(selector);
-                        // Και το κελί έχει όντως μάθημα
                         if(cell && cell.innerText.trim() !== "") {
                             foundNext = true;
                             updateFooter(slot, cell, "NEXT");
-                            break; // Βρήκαμε το πρώτο επόμενο, σταματάμε.
+                            break;
                         }
                     }
                 }
 
                 if (!foundNext) {
-                    // Αν δεν υπάρχει ούτε τρέχον ούτε επόμενο (τέλος ημέρας)
                     infoTxt.innerHTML = "Το πρόγραμμα ολοκληρώθηκε για σήμερα.";
                     btn.disabled = true;
                     btn.innerText = "ΤΕΛΟΣ ΠΡΟΓΡΑΜΜΑΤΟΣ";
@@ -535,7 +539,6 @@
             const btn = document.getElementById('enter-lesson-btn');
             const infoTxt = document.getElementById('lesson-info-text');
 
-            // Επιλογή CSS class ανάλογα με τον τύπο
             if (type === "CURRENT") {
                 cell.classList.add('current-active-cell');
             } else {
@@ -544,10 +547,9 @@
             
             cell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
-            // Εύρεση Καθηγητών
             let teachers = [];
             let isMulti = false;
-            let teacherDisplay = "";
+            let teacherDisplay = teachers.join(", ");
 
             if (subject.includes("ΑΓΓΛΙΚΑ")) {
                 teachers = teacherMap["ΑΓΓΛΙΚΑ"] || [];
@@ -564,11 +566,8 @@
                 teacherDisplay = teachers.join(", ");
             }
 
-            // Διαμόρφωση κειμένου Footer
             let prefix = type === "CURRENT" ? "Τώρα:" : "Επόμενο:";
             let btnText = type === "CURRENT" ? "ΜΠΕΣ ΣΤΟ ΜΑΘΗΜΑ" : "ΜΠΕΣ ΣΤΟ ΕΠΟΜΕΝΟ";
-            
-            // Αν είναι επόμενο, δείχνουμε σε πόση ώρα ξεκινάει (προαιρετικά, εδώ δείχνουμε την ώρα έναρξης)
             let timeLabel = slot.label;
             
             infoTxt.innerHTML = `
@@ -598,22 +597,89 @@
             }
         }
 
+        // --- NEW: SECRET TAP HANDLER ---
+        function handleSecretTap() {
+            debugTapCount++;
+            
+            // Αν έχουν περάσει 5 χτυπήματα
+            if (debugTapCount >= 5) {
+                toggleDebugPanel();
+                debugTapCount = 0; // Reset
+                clearTimeout(debugTapTimer);
+            } else {
+                // Reset counter αν δεν πατηθεί ξανά μέσα σε 1 δευτερόλεπτο
+                clearTimeout(debugTapTimer);
+                debugTapTimer = setTimeout(() => {
+                    debugTapCount = 0;
+                }, 1000);
+            }
+        }
+
+        function toggleDebugPanel() {
+            const p = document.getElementById('debug-panel');
+            const isVisible = (p.style.display === "block");
+            p.style.display = isVisible ? "none" : "block";
+            resizeIframe();
+            // Μικρή ειδοποίηση για να καταλάβει ο χρήστης στο κινητό ότι κάτι έγινε
+            if (!isVisible) alert("Debug Mode Enabled"); 
+        }
+
+        // Keep PageUp for Desktop
         window.addEventListener('keydown', (e) => {
             if(e.key === "PageUp") {
-                const p = document.getElementById('debug-panel');
-                p.style.display = (p.style.display === "none" || p.style.display === "") ? "block" : "none";
+                toggleDebugPanel();
             }
         });
 
         function applyDebugTime() {
             const d = parseInt(document.getElementById('debug-day').value);
-            const t = document.getElementById('debug-time').value;
-            if(!t) { alert("Time required"); return; }
-            const [h, m] = t.split(':').map(Number);
+            let h = parseInt(document.getElementById('debug-hour').value);
+            let m = parseInt(document.getElementById('debug-minute').value);
+            
+            if(isNaN(h)) h = 8;
+            if(isNaN(m)) m = 0;
+            if(h > 23) h = 23;
+            if(m > 59) m = 59;
+            
+            document.getElementById('debug-hour').value = h.toString().padStart(2,'0');
+            document.getElementById('debug-minute').value = m.toString().padStart(2,'0');
+
             debugOverride = { day: d, hours: h, minutes: m };
             checkCurrentLesson();
+            restartTimer(); 
         }
-        function resetDebug() { debugOverride = null; checkCurrentLesson(); }
+
+        function resetDebug() {
+            debugOverride = null;
+            checkCurrentLesson();
+            restartTimer();
+            alert("Επαναφορά σε πραγματικό χρόνο.");
+        }
+        
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (debugOverride) {
+                    debugOverride.minutes++;
+                    if (debugOverride.minutes >= 60) {
+                        debugOverride.minutes = 0;
+                        debugOverride.hours++;
+                        if (debugOverride.hours >= 24) {
+                            debugOverride.hours = 0;
+                            debugOverride.day = (debugOverride.day + 1) % 7;
+                            document.getElementById('debug-day').value = debugOverride.day;
+                        }
+                    }
+                    document.getElementById('debug-hour').value = debugOverride.hours.toString().padStart(2, '0');
+                    document.getElementById('debug-minute').value = debugOverride.minutes.toString().padStart(2, '0');
+                }
+                checkCurrentLesson();
+            }, 60000); 
+        }
+        
+        function restartTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTimer();
+        }
 
         function handleDirectLink(subject) {
             const teachers = teacherMap[subject];
@@ -659,10 +725,22 @@
         function closeModal() { document.getElementById('modal').style.display = 'none'; }
         window.onclick = (e) => { if(e.target.className === 'modal') closeModal(); }
 
+        function resizeIframe() {
+            try {
+                if(window.frameElement) {
+                    const newHeight = document.body.scrollHeight + 30;
+                    window.frameElement.style.height = newHeight + 'px';
+                }
+            } catch(e) {
+                console.log("Resize blocked or not in iframe");
+            }
+        }
+
         parseData();
         initTable();
         checkCurrentLesson();
-        setInterval(checkCurrentLesson, 60000);
+        startTimer();
+        window.onload = resizeIframe;
     </script>
 </body>
 </html>
