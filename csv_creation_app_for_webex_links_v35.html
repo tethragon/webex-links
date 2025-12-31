@@ -1,0 +1,942 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Επεξεργασία Ωρολογίου Προγράμματος & Αναθέσεις</title>
+    <style>
+        :root { 
+            --primary-blue: #004a99; 
+            --hover-blue: #e3f2fd; 
+            --border-color: #e0e0e0; 
+            --panel-bg: #f8f9fa; 
+            --error-red: #d32f2f;
+            --success-green: #2e7d32;
+            --warning-orange: #f57c00;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: auto; 
+            background: #eceff1; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+        }
+
+        body { 
+            padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding-bottom: 100px; 
+        }
+
+        h2 { 
+            color: var(--primary-blue); 
+            text-transform: uppercase; 
+            margin: 5px 0 15px; 
+            text-align: center; 
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        /* Controls Area (Top) */
+        .controls-area {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            min-width: 300px;
+            border: 2px solid transparent; /* Prepare for validation highlight */
+            transition: all 0.3s ease;
+        }
+
+        .select-group {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .controls-area label { font-weight: bold; color: #333; font-size: 1.1rem; }
+        
+        /* Specific style for Top Controls to keep them neat */
+        .controls-area select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+            width: auto;      /* Auto width based on content */
+            min-width: 100px; /* Don't get too small */
+            text-align: center;
+        }
+
+        /* Global Select Style (Mainly for Tables) */
+        select {
+            width: 100%;
+            min-width: 150px; /* FIXED: Restore width to table dropdowns */
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #fff;
+            font-family: inherit;
+            cursor: pointer;
+        }
+        
+        select:focus { 
+            border-color: var(--primary-blue); 
+            outline: 2px solid var(--hover-blue);
+            box-shadow: 0 0 5px rgba(0,74,153,0.3);
+        }
+
+        /* Validation Report */
+        .validation-report {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            scroll-margin-top: 20px;
+        }
+        
+        .assignment-warning {
+            color: var(--error-red);
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #ffebee;
+            border-left: 5px solid var(--error-red);
+            display: none;
+        }
+
+        .validation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .validation-item {
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f5f5f5;
+        }
+        .validation-item.error { background-color: #fff5f5; color: var(--error-red); border-left: 4px solid var(--error-red); }
+        .validation-item.success { background-color: #f1f8f1; color: var(--success-green); border-left: 4px solid var(--success-green); }
+
+        /* Tables & Cards */
+        .card {
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 30px; 
+            scroll-margin-top: 20px;
+        }
+
+        .card-header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 10px 15px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .table-scroll-area { overflow: auto; max-height: 75vh; width: 100%; position: relative; }
+        .table-full-view { width: 100%; overflow-x: auto; }
+
+        table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 800px; }
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            padding: 6px; 
+            text-align: center; 
+            font-size: 0.9rem; 
+        }
+
+        #schedule-table th { background: var(--primary-blue); color: white; position: sticky; top: 0; z-index: 20; }
+        #schedule-table th:first-child { left: 0; z-index: 30; }
+        #schedule-table td:first-child { position: sticky; left: 0; z-index: 15; background: #fcfcfc; font-weight: bold; }
+
+        #assignments-table { min-width: 600px; }
+        #assignments-table th { background: #455a64; color: white; text-align: left; padding: 10px; }
+        #assignments-table td { text-align: left; padding: 10px 8px; vertical-align: middle; }
+        #assignments-body tr:nth-child(even) { background-color: #f2f2f5; }
+        #assignments-body tr:nth-child(odd) { background-color: #ffffff; }
+
+        .missing-assignment { border: 2px solid var(--error-red) !important; background-color: #fff5f5; }
+        .teacher-mismatch { color: var(--error-red) !important; font-weight: bold; background-color: #fff0f0; }
+
+        .teacher-row-container { display: flex; flex-direction: column; gap: 5px; }
+        .teacher-input-group { display: flex; gap: 5px; align-items: center; }
+        
+        .btn-add, .btn-remove {
+            width: 30px; height: 30px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .btn-add { background-color: #28a745; color: white; }
+        .btn-remove { background-color: #dc3545; color: white; }
+
+        /* Footer */
+        .main-footer {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: white; border-top: 1px solid #ddd; padding: 10px;
+            display: flex; justify-content: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100;
+        }
+
+        .footer-inner {
+            width: 100%; max-width: 1200px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 15px;
+        }
+
+        .footer-status-area { display: flex; gap: 15px; align-items: center; }
+        
+        /* Status Boxes */
+        .status-box {
+            background: #757575; color: white; padding: 8px 16px; border-radius: 8px;
+            font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
+            cursor: pointer; user-select: none;
+        }
+        
+        .status-box:hover {
+            transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .status-box:active {
+            transform: translateY(0); box-shadow: 0 2px 2px rgba(0,0,0,0.2);
+        }
+
+        .status-box.success { background-color: var(--success-green); }
+        .status-box.warning { background-color: var(--warning-orange); }
+        .status-box.error { background-color: var(--error-red); }
+        
+        .footer-actions-area { display: flex; gap: 10px; align-items: center; }
+        
+        /* Buttons - Consolidated Style */
+        .btn-footer {
+            color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 50px; 
+            cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: all 0.2s;
+        }
+
+        .btn-footer:hover {
+            transform: translateY(-2px); filter: brightness(1.15); box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        .btn-footer:active {
+            transform: translateY(0); box-shadow: 0 2px 2px rgba(0,0,0,0.2); filter: brightness(0.9);
+        }
+
+        .export-btn { background-color: #2e7d32; }
+        .import-btn { background-color: #0277bd; }
+        .reset-btn { background-color: #c62828; }
+        .btn-footer svg { width: 18px; height: 18px; fill: currentColor; }
+        
+        .save-indicator {
+            position: absolute; right: 20px; top: -40px; background: #333; color: #fff;
+            padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; opacity: 0; pointer-events: none;
+            transition: opacity 0.5s;
+        }
+        
+        .debug-hint { position: fixed; bottom: 85px; left: 10px; font-size: 0.7em; color: #aaa; opacity: 0.5; }
+
+        @media screen and (max-width: 800px) {
+            .footer-inner { justify-content: center; flex-direction: column; gap: 10px; }
+            .footer-status-area, .footer-actions-area { width: 100%; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <h2>ΔΗΜΙΟΥΡΓΙΑ ΠΡΟΓΡΑΜΜΑΤΟΣ</h2>
+
+    <div class="controls-area">
+        <label>Όρισε Τμήμα:</label>
+        <div class="select-group">
+            <select id="grade-select" onchange="handleMainChange()">
+                <option value="" disabled selected>Τάξη</option>
+                <option value="Α">Α</option>
+                <option value="Β">Β</option>
+                <option value="Γ">Γ</option>
+                <option value="Δ">Δ</option>
+                <option value="Ε">Ε</option>
+                <option value="ΣΤ">ΣΤ</option>
+            </select>
+            <select id="section-select" onchange="handleMainChange()">
+                <option value="" disabled selected>Τμήμα</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+            </select>
+        </div>
+    </div>
+
+    <div id="validation-report" class="validation-report">
+        <div id="assignment-warning" class="assignment-warning">⚠️ ΠΡΟΣΟΧΗ: Υπάρχουν μαθήματα χωρίς ανάθεση εκπαιδευτικού!</div>
+        <strong>Αναλυτικός Έλεγχος Μαθημάτων:</strong>
+        <div id="validation-grid" class="validation-grid"></div>
+    </div>
+
+    <div id="card-schedule" class="card">
+        <div class="card-header">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</div>
+        <div class="table-scroll-area">
+            <table id="schedule-table">
+                <thead><tr id="header-row"></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="card-assignments" class="card">
+        <div class="card-header">ΑΝΑΘΕΣΕΙΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ</div>
+        <div class="table-full-view">
+            <table id="assignments-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40%;">Μάθημα</th>
+                        <th style="width: 60%;">Εκπαιδευτικός</th>
+                    </tr>
+                </thead>
+                <tbody id="assignments-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-footer">
+        <div class="footer-inner">
+            <div class="save-indicator" id="save-msg">Αποθηκεύτηκε</div>
+            
+            <div class="footer-status-area">
+                <div id="status-hours" class="status-box warning" onclick="document.getElementById('card-schedule').scrollIntoView({behavior: 'smooth'})" title="Μετάβαση στο Ωρολόγιο Πρόγραμμα">
+                    <span>ΩΡΕΣ: 0/40</span>
+                </div>
+                
+                <div id="status-subjects" class="status-box warning" onclick="document.getElementById('validation-report').scrollIntoView({behavior: 'smooth'})" title="Μετάβαση στους Ελέγχους">
+                    <span>ΜΑΘΗΜΑΤΑ: -</span>
+                </div>
+                
+                <div id="status-assign" class="status-box warning" onclick="document.getElementById('card-assignments').scrollIntoView({behavior: 'smooth'})" title="Μετάβαση στις Αναθέσεις">
+                    <span>ΑΝΑΘΕΣΕΙΣ: 0/0</span>
+                </div>
+            </div>
+
+            <div class="footer-actions-area">
+                <button class="btn-footer reset-btn" onclick="clearAllData()">
+                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                    ΚΑΘΑΡΙΣΜΟΣ
+                </button>
+                <input type="file" id="csv-input" accept=".csv" style="display: none;" onchange="handleFileSelect(event)">
+                <button class="btn-footer import-btn" onclick="triggerImport()">
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" transform="rotate(180 12 12)"/></svg>
+                    ΕΙΣΑΓΩΓΗ
+                </button>
+                <button class="btn-footer export-btn" onclick="exportToCSV()">
+                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                    ΕΞΑΓΩΓΗ
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-hint">Press * for Debug Fill</div>
+
+    <script>
+        // ==========================================
+        // CONFIGURATION
+        // ==========================================
+        const RAW_DAYS = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ`;
+        const RAW_TIMES = `8:10-8:55\n9:00-9:45\n10:00-10:45\n10:50-11:35\n11:45-12:25\n12:30-13:10\n13:25-14:05\n14:10-14:50`;
+        const RAW_SUBJECTS = `ΑΓΓΛΙΚΑ\nΑΓΩΓΗ ΥΓΕΙΑΣ\nΒ' ΞΕΝΗ ΓΛΩΣΣΑ\nΓΕΩΓΡΑΦΙΑ\nΓΥΜΝΑΣΤΙΚΗ\nΕΛΛΗΝΙΚΑ\nΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ\nΕΡΓ. ΔΕΞ.\nΘΕΑΤΡΙΚΗ ΑΓΩΓΗ\nΘΡΗΣΚΕΥΤΙΚΑ\nΙΣΤΟΡΙΑ\nΚΑΛΛΙΤΕΧΝΙΚΑ\nΚΠΑ\nΜΑΘΗΜΑΤΙΚΑ\nΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ\nΜΟΥΣΙΚΗ\nΜΣ/ΔΣ\nΠΛΗΡΟΦΟΡΙΚΗ\nΦΙΛΑΝΑΓΝΩΣΙΑ\nΦΥΣΙΚΗ\nSHTEAM\nSOCIAL STUDIES`;
+        const RAW_TEACHERS = `ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ\nΑΘΑΝΑΣΙΟΥ ΜΑΡΙΑ-ΧΡΙΣΤΙΝΑ\nΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ\nΑΝΔΡΙΑΝΟΠΟΥΛΟΥ ΠΟΛY\nΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΑΡΤΑΒΑΝΗ ΘΕΟΔΩΡΑ\nΒΑΣΙΛΑ ΚΑΤΕΡΙΝΑ\nΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ\nΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ\nΒΡΕΤΤΑΚΟΥ ΒΑΡΒΑΡΑ\nΓΕΡΑΝΗ ΧΑΡΙΚΛΕΙΑ\nΓΙΑΚΟΥΒΗ ΚΩΝΣΤΑΝΤΙΝΑ\nΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΖΕΡΒΑ ΕΙΡΗΝΗ\nΚΑΛΛΙΑΝΤΑ ΜΑΡΙΑ\nΚΑΤΣΑ ΝΑΝΣΥ\nΚΗΤΤΑ ΕΛΙΝΑ\nΚΟΚΚΟΛΑΤΟΥ ΑΛΙΝΑ\nΚΟΝΤΟΥ ΑΝΘΗ\nΚΟΥΜΑΡΙΑΝΟΥ ΣΟΦΙΑ\nΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ\nΛΟΡΕΝΤΖΟΥ ΖΩΗ\nΜΑΘΙΟΥΔΑΚΗ ΕΥΑΓΓΕΛΙΑ\nΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ\nΜΟΥΡΙΚΗ ΚΑΤΕΡΙΝΑ\nΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ\nΜΠΟΥΡΔΑΚΟΥ ΜΑΡΙΖΑ\nΜΥΤΑΚΙΔΗ  ΚΑΤΕΡΙΝΑ\nΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΟΛΑΚΑΚΗ ΧΡΙΣΤΙΝΑ\nΣΠΥΡΟΠΟΥΛΟΥ ΜΠΕΤΥ\nΣΤΕΦΟΥ ΑΣΗΜΙΝΑ\nΣΥΚΙΩΤΗ   ΧΡΙΣΤΙΝΑ\nΤΣΙΡΟΥ ΟΥΡΑΝΙΑ\nΦΡΑΓΚΟΥΛΗ ΕΙΡΗΝΗ\nΧΑΤΖΗΙΩΑΝΝΟΥ ΔΕΣΠΟΙΝΑ\nΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ`;
+        const RAW_HOURS_RULES = `Β' ΞΕΝΗ ΓΛΩΣΣΑ,0,0,2,2,3,3\nΓΥΜΝΑΣΤΙΚΗ,4,4,3,3,3,3\nΙΣΤΟΡΙΑ,0,0,2,2,2,2\nΦΥΣΙΚΗ,0,0,0,0,3,3\nΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ,3,3,2,2,0,0\nΚΑΛΛΙΤΕΧΝΙΚΑ,2,2,2,2,1,1\nΜΑΘΗΜΑΤΙΚΑ,5,5,5,5,5,5\nΕΛΛΗΝΙΚΑ,9,9,8,8,7,7\nΑΓΓΛΙΚΑ,4,4,5,5,5,5\nΚΑΛΛΙΤΕΧΝΙΚΑ,2,2,2,2,1,1\nΦΙΛΑΝΑΓΝΩΣΙΑ,1,1,1,1,1,1\nΕΡΓ. ΔΕΞ.,3,3,2,2,2,2\nΜΟΥΣΙΚΗ,2,2,2,2,1,1\nΠΛΗΡΟΦΟΡΙΚΗ,1,1,1,1,1,1\nΚΠΑ,0,0,0,0,1,1\nΓΕΩΓΡΑΦΙΑ,0,0,0,0,1,1\nSOCIAL STUDIES,0,0,0,0,1,1\nΑΓΩΓΗ ΥΓΕΙΑΣ,1,1,0,0,0,0\nΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ,1,1,0,0,0,0\nΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,1,1,1,1,1,1\nΘΡΗΣΚΕΥΤΙΚΑ,0,0,2,2,1,1\nΜΣ/ΔΣ,1,1,1,1,1,1\nSHTEAM,1,1,1,1,0,0\nSOCIAL STUDIES,0,0,0,0,1,1`;
+        const RAW_TEACHER_MAPPINGS = `ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΑΓΓΛΙΚΑ\nΚΑΤΣΑ ΝΑΝΣΥ,ΑΓΓΛΙΚΑ\nΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΑΓΓΛΙΚΑ\nΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ,ΑΓΓΛΙΚΑ\nΜΠΟΥΡΔΑΚΟΥ ΜΑΡΙΖΑ,ΑΓΓΛΙΚΑ\nΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΓΑΛΛΙΚΑ\nΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ,ΓΑΛΛΙΚΑ\nΚΟΥΜΑΡΙΑΝΟΥ ΣΟΦΙΑ,ΓΑΛΛΙΚΑ\nΧΑΤΖΗΙΩΑΝΝΟΥ ΔΕΣΠΟΙΝΑ,ΓΑΛΛΙΚΑ\nΑΡΤΑΒΑΝΗ ΘΕΟΔΩΡΑ,ΓΕΡΜΑΝΙΚΑ\nΤΣΙΡΟΥ ΟΥΡΑΝΙΑ,ΓΕΡΜΑΝΙΚΑ\nΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ,ΦΥΣΙΚΗ\nΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ\nΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ,ΜΟΥΣΙΚΗ\nΚΟΝΤΟΥ ΑΝΘΗ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ\nΑΘΑΝΑΣΙΟΥ ΜΑΡΙΑ-ΧΡΙΣΤΙΝΑ,ΓΥΜΝΑΣΤΙΚΗ\nΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ,ΓΥΜΝΑΣΤΙΚΗ\nΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΠΛΗΡΟΦΟΡΙΚΗ\nΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,SOCIAL STUDIES\nΚΑΤΣΑ ΝΑΝΣΥ,SOCIAL STUDIES\nΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,SOCIAL STUDIES\nΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ,SOCIAL STUDIES\nΜΠΟΥΡΔΑΚΟΥ ΜΑΡΙΖΑ,SOCIAL STUDIES`;
+        const DEBUG_DATA_CSV = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ\n8:10-8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ\n9:00-9:45,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΓΥΜΝΑΣΤΙΚΗ,ΕΛΛΗΝΙΚΑ\n10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΕΡΓ. ΔΕΞ.\n10:50-11:35,ΓΥΜΝΑΣΤΙΚΗ,ΓΥΜΝΑΣΤΙΚΗ,ΜΑΘΗΜΑΤΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΛΙΚΑ\n11:45-12:25,ΦΥΣΙΚΗ,ΙΣΤΟΡΙΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΦΥΣΙΚΗ\n12:30-13:10,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΚΠΑ,ΑΓΓΛΙΚΑ,ΜΣ/ΔΣ\n13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ\n14:10-14:50,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
+        const DEBUG_ASSIGNMENTS_CSV = `ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ\nΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ\nΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ\nΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ\nΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ\nΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ\nΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ\nΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ`;
+
+        const TARGET_TOTAL_HOURS = 40;
+        const MULTI_TEACHER_SUBJECTS = ["ΑΓΓΛΙΚΑ", "ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"];
+
+        let rulesMap = {}; 
+        let assignmentsState = {}; 
+        let teacherSpecialties = {};
+        let restrictedSubjects = new Set(); 
+
+        // ... (Parsing Helpers from before) ...
+        function parseList(text) { return text.trim().split('\n').map(s => s.trim()).filter(s => s !== ""); }
+
+        function parseRules() {
+            const lines = parseList(RAW_HOURS_RULES);
+            lines.forEach(line => {
+                const parts = line.split(',');
+                const subject = parts[0].trim();
+                const hours = parts.slice(1).map(Number);
+                if (hours.length === 6) rulesMap[subject] = hours;
+            });
+        }
+
+        function parseTeacherMappings() {
+            const lines = parseList(RAW_TEACHER_MAPPINGS);
+            lines.forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const teacher = parts[0].trim();
+                    const subject = parts[1].trim();
+                    if (!teacherSpecialties[teacher]) teacherSpecialties[teacher] = new Set();
+                    teacherSpecialties[teacher].add(subject);
+                    restrictedSubjects.add(subject); 
+                }
+            });
+        }
+
+        function initApp() {
+            parseRules();
+            parseTeacherMappings();
+
+            const subjects = parseList(RAW_SUBJECTS);
+            const days = RAW_DAYS.split(',').map(s => s.trim());
+            const times = parseList(RAW_TIMES);
+
+            const headerRow = document.getElementById('header-row');
+            days.forEach(day => {
+                const th = document.createElement('th');
+                th.innerText = day;
+                headerRow.appendChild(th);
+            });
+
+            const tbody = document.getElementById('table-body');
+            times.forEach(timeLabel => {
+                const tr = document.createElement('tr');
+                const tdTime = document.createElement('td');
+                tdTime.innerText = timeLabel;
+                tr.appendChild(tdTime);
+
+                for (let i = 1; i < days.length; i++) {
+                    const td = document.createElement('td');
+                    const select = createDropdown(subjects, "subject-select");
+                    select.onchange = handleMainChange; 
+                    td.appendChild(select);
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            });
+
+            loadFromLocal();
+        }
+
+        function checkSelectionLocked() {
+            const grade = document.getElementById('grade-select').value;
+            const section = document.getElementById('section-select').value;
+            if (!grade || !section) {
+                alert("⚠️ ΠΡΟΣΟΧΗ: Παρακαλώ επιλέξτε πρώτα Τάξη και Τμήμα για να ξεκινήσετε!");
+                
+                // Highlight Controls
+                const controls = document.querySelector('.controls-area');
+                controls.scrollIntoView({behavior: 'smooth', block: 'center'});
+                controls.style.borderColor = "var(--error-red)";
+                controls.style.boxShadow = "0 0 15px rgba(211, 47, 47, 0.3)";
+                
+                setTimeout(() => {
+                    controls.style.borderColor = "transparent";
+                    controls.style.boxShadow = "0 2px 5px rgba(0,0,0,0.05)";
+                }, 2000);
+                
+                return true;
+            }
+            return false;
+        }
+
+        function createDropdown(optionsList, className) {
+            const select = document.createElement('select');
+            select.className = className;
+            const def = document.createElement('option');
+            def.value = ""; def.text = "-"; def.style.color="#999";
+            select.appendChild(def);
+            optionsList.forEach(opt => {
+                const o = document.createElement('option');
+                o.value = opt; o.text = opt;
+                select.appendChild(o);
+            });
+
+            // ADDED: Lock check on interaction
+            if (className === 'subject-select') {
+                select.addEventListener('mousedown', function(e) {
+                    if (checkSelectionLocked()) {
+                        e.preventDefault();
+                        this.blur();
+                    }
+                });
+            }
+
+            return select;
+        }
+
+        function handleMainChange() {
+            validateSchedule();
+            updateAssignmentsTable();
+            validateAssignments();
+            saveToLocal();
+        }
+
+        // ==========================================
+        // KEYBOARD NAVIGATION (ARROWS, ENTER, DELETE/BACKSPACE, PGUP/PGDN)
+        // ==========================================
+        document.addEventListener('keydown', (e) => {
+            // Debug Shortcut (*)
+            if (e.key === '*') {
+                e.preventDefault();
+                if (confirm("⚠️ ΠΡΟΣΟΧΗ: Ενεργοποίηση Debug Mode.\n\nΌλα τα τρέχοντα δεδομένα θα διαγραφούν.\n\nΘέλετε να συνεχίσετε;")) {
+                    fillDebug();
+                }
+                return;
+            }
+
+            if (e.target.tagName === 'SELECT') {
+                
+                // ADDED: Lock check for keyboard interaction on Subject Selects
+                if (e.target.classList.contains('subject-select') && ['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
+                    // Only check lock if they are trying to open it or change values, purely navigation is fine? 
+                    // Actually, let's block interaction that changes value.
+                    // For safety, let's block the Enter/Space which opens it.
+                    if (['Enter', ' '].includes(e.key)) {
+                        if (checkSelectionLocked()) {
+                            e.preventDefault();
+                            return;
+                        }
+                    }
+                }
+
+                // 1. Enter Key -> Open Dropdown
+                if (e.key === 'Enter') {
+                    e.preventDefault(); 
+                    try { if (e.target.showPicker) e.target.showPicker(); } catch (err) { console.log(err); }
+                    return;
+                }
+
+                // 2. Delete / Backspace -> Clear Value
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    e.preventDefault();
+                    if (checkSelectionLocked()) return; // Prevent clearing if locked? (optional, but consistent)
+
+                    if (e.target.value !== "") {
+                        e.target.value = "";
+                        e.target.dispatchEvent(new Event('change'));
+                    }
+                    return;
+                }
+
+                // 3. Fix for PageUp / PageDown / Home / End -> Prevent Value Change & Scroll Instead
+                if (['PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) {
+                    e.preventDefault(); // STOP the select from changing value
+                    e.target.blur();    // REMOVE focus so browser handles scroll naturally next time
+                    
+                    // Manually trigger the scroll behavior for better UX immediately
+                    const scrollAmount = window.innerHeight * 0.8;
+                    if (e.key === 'PageUp') window.scrollBy(0, -scrollAmount);
+                    if (e.key === 'PageDown') window.scrollBy(0, scrollAmount);
+                    if (e.key === 'Home') window.scrollTo(0, 0);
+                    if (e.key === 'End') window.scrollTo(0, document.body.scrollHeight);
+                    
+                    return;
+                }
+
+                // 4. Arrow Keys -> Move Focus
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                    e.preventDefault(); 
+                    navigateGrid(e.target, e.key);
+                }
+            }
+        });
+
+        function navigateGrid(currentSelect, key) {
+            // Fix: Use .closest() to find parent table robustly
+            const parentTable = currentSelect.closest('table');
+            
+            if (!parentTable) return;
+
+            if (parentTable.id === 'schedule-table') {
+                const cell = currentSelect.closest('td');
+                const row = cell.parentElement;
+                handleScheduleNav(row, cell, key);
+            } else if (parentTable.id === 'assignments-table') {
+                handleLinearNav(currentSelect, key);
+            }
+        }
+
+        function handleScheduleNav(row, cell, key) {
+            const rows = Array.from(document.querySelectorAll('#table-body tr'));
+            const currentRowIdx = rows.indexOf(row);
+            const cells = Array.from(row.children);
+            const currentColIdx = cells.indexOf(cell);
+
+            let nextSelect = null;
+
+            if (key === 'ArrowRight') {
+                if (currentColIdx < cells.length - 1) {
+                    nextSelect = cells[currentColIdx + 1].querySelector('select');
+                }
+            } else if (key === 'ArrowLeft') {
+                if (currentColIdx > 1) { // Index 0 is Time label
+                    nextSelect = cells[currentColIdx - 1].querySelector('select');
+                }
+            } else if (key === 'ArrowDown') {
+                if (currentRowIdx < rows.length - 1) {
+                    const nextRow = rows[currentRowIdx + 1];
+                    nextSelect = nextRow.children[currentColIdx].querySelector('select');
+                }
+            } else if (key === 'ArrowUp') {
+                if (currentRowIdx > 0) {
+                    const prevRow = rows[currentRowIdx - 1];
+                    nextSelect = prevRow.children[currentColIdx].querySelector('select');
+                }
+            }
+
+            if (nextSelect) nextSelect.focus();
+        }
+
+        function handleLinearNav(currentSelect, key) {
+            const allSelects = Array.from(document.querySelectorAll('#assignments-body select'));
+            const idx = allSelects.indexOf(currentSelect);
+            
+            if (key === 'ArrowDown' || key === 'ArrowRight') {
+                if (idx < allSelects.length - 1) allSelects[idx + 1].focus();
+            } else if (key === 'ArrowUp' || key === 'ArrowLeft') {
+                if (idx > 0) allSelects[idx - 1].focus();
+            }
+        }
+
+        // ... (Rest of logic: saveToLocal, loadFromLocal, validate, etc.) ...
+        
+        function saveToLocal() {
+            const grade = document.getElementById('grade-select').value;
+            const section = document.getElementById('section-select').value;
+            // Don't save empty defaults if not needed, but here we save state
+            const scheduleData = [];
+            const rows = document.getElementById('table-body').querySelectorAll('tr');
+            rows.forEach(r => {
+                const rowVals = [];
+                r.querySelectorAll('select').forEach(s => rowVals.push(s.value));
+                scheduleData.push(rowVals);
+            });
+            const dataToSave = { grade, section, schedule: scheduleData, assignments: assignmentsState };
+            localStorage.setItem('schoolSchedulerData', JSON.stringify(dataToSave));
+            const msg = document.getElementById('save-msg');
+            msg.style.opacity = '1';
+            setTimeout(() => { msg.style.opacity = '0'; }, 1000);
+        }
+
+        function loadFromLocal() {
+            const savedData = localStorage.getItem('schoolSchedulerData');
+            if (!savedData) return;
+            try {
+                const data = JSON.parse(savedData);
+                if (data.grade) document.getElementById('grade-select').value = data.grade;
+                if (data.section) document.getElementById('section-select').value = data.section;
+                if (data.schedule && Array.isArray(data.schedule)) {
+                    const rows = document.getElementById('table-body').querySelectorAll('tr');
+                    data.schedule.forEach((rowVals, rIndex) => {
+                        if (rIndex < rows.length) {
+                            const selects = rows[rIndex].querySelectorAll('select');
+                            rowVals.forEach((val, sIndex) => {
+                                if (sIndex < selects.length) selects[sIndex].value = val;
+                            });
+                        }
+                    });
+                }
+                if (data.assignments) assignmentsState = data.assignments;
+                validateSchedule();
+                updateAssignmentsTable();
+                validateAssignments();
+            } catch (e) { console.error("Error loading data", e); }
+        }
+
+        function clearAllData() {
+            if (confirm("ΠΡΟΣΟΧΗ: Είστε σίγουροι ότι θέλετε να διαγράψετε όλα τα δεδομένα;")) {
+                localStorage.removeItem('schoolSchedulerData');
+                assignmentsState = {};
+                document.getElementById('grade-select').value = "";
+                document.getElementById('section-select').value = "";
+                document.getElementById('csv-input').value = "";
+                document.querySelectorAll('#table-body select').forEach(s => s.value = "");
+                handleMainChange();
+            }
+        }
+
+        function validateSchedule() {
+            const grade = document.getElementById('grade-select').value;
+            const reportDiv = document.getElementById('validation-report');
+            const gridDiv = document.getElementById('validation-grid');
+            const footerHours = document.getElementById('status-hours');
+            const footerSubj = document.getElementById('status-subjects'); 
+
+            if (!grade) { 
+                reportDiv.style.display = 'none'; 
+                footerHours.innerHTML = `<span>ΩΡΕΣ: 0/${TARGET_TOTAL_HOURS}</span>`;
+                footerHours.className = 'status-box warning';
+                
+                footerSubj.innerHTML = `<span>ΜΑΘΗΜΑΤΑ: -</span>`;
+                footerSubj.className = 'status-box warning';
+                return; 
+            }
+
+            reportDiv.style.display = 'block';
+            gridDiv.innerHTML = '';
+            const gradeMap = { 'Α':0, 'Β':1, 'Γ':2, 'Δ':3, 'Ε':4, 'ΣΤ':5 };
+            const idx = gradeMap[grade];
+            const selects = document.querySelectorAll('.subject-select');
+            const counts = {};
+            let total = 0;
+
+            selects.forEach(sel => {
+                if(sel.value) { counts[sel.value] = (counts[sel.value]||0)+1; total++; }
+            });
+
+            // Footer Indicator Update (Total Hours)
+            footerHours.innerHTML = `<span>ΩΡΕΣ: ${total}/${TARGET_TOTAL_HOURS}</span>`;
+            footerHours.className = (total === TARGET_TOTAL_HOURS) ? 'status-box success' : 'status-box warning';
+
+            // Check if ANY subject has wrong hours
+            let subjectsError = false;
+
+            for (const [subj, hoursArr] of Object.entries(rulesMap)) {
+                const req = hoursArr[idx];
+                const act = counts[subj] || 0;
+                const el = document.createElement('div');
+                el.className = 'validation-item';
+                
+                if (act === req) {
+                    el.classList.add('success'); el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (OK)</span>`;
+                } else {
+                    el.classList.add('error'); el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (ΛΑΘΟΣ)</span>`;
+                    subjectsError = true; // Mark as error
+                }
+                gridDiv.appendChild(el);
+            }
+
+            // Update New Footer Indicator (Subjects)
+            if (subjectsError) {
+                footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: ΛΑΘΟΣ</span>';
+                footerSubj.className = 'status-box error'; // Red
+            } else {
+                footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: OK</span>';
+                footerSubj.className = 'status-box success'; // Green
+            }
+        }
+
+        function updateAssignmentsTable() {
+            const tableBody = document.getElementById('assignments-body');
+            const subjectsInSchedule = new Set();
+            document.querySelectorAll('.subject-select').forEach(sel => { if (sel.value) subjectsInSchedule.add(sel.value); });
+            if (subjectsInSchedule.has("Β' ΞΕΝΗ ΓΛΩΣΣΑ")) {
+                subjectsInSchedule.delete("Β' ΞΕΝΗ ΓΛΩΣΣΑ"); subjectsInSchedule.add("ΓΑΛΛΙΚΑ"); subjectsInSchedule.add("ΓΕΡΜΑΝΙΚΑ");
+            }
+            tableBody.innerHTML = '';
+            const uniqueSubjects = Array.from(subjectsInSchedule).sort();
+            const teacherList = parseList(RAW_TEACHERS);
+
+            uniqueSubjects.forEach(subject => {
+                const row = document.createElement('tr');
+                const cellSubj = document.createElement('td'); cellSubj.innerText = subject; cellSubj.style.fontWeight = 'bold'; row.appendChild(cellSubj);
+                const cellTeacher = document.createElement('td');
+                
+                if (MULTI_TEACHER_SUBJECTS.includes(subject)) {
+                    const container = document.createElement('div'); container.className = 'teacher-row-container';
+                    let currentValues = assignmentsState[subject];
+                    if (typeof currentValues === 'string') currentValues = [currentValues];
+                    if (!Array.isArray(currentValues) || currentValues.length === 0) currentValues = [""];
+                    currentValues.forEach((val, index) => { addTeacherSelectRow(container, teacherList, subject, val, index === 0); });
+                    cellTeacher.appendChild(container);
+                } else {
+                    const select = createDropdown(teacherList, "teacher-select");
+                    select.setAttribute('data-subject', subject);
+                    if (assignmentsState[subject] && typeof assignmentsState[subject] === 'string') select.value = assignmentsState[subject];
+                    checkTeacherSpecialty(select, subject, select.value);
+                    select.onchange = function() {
+                        assignmentsState[subject] = this.value; validateAssignments(); checkTeacherSpecialty(this, subject, this.value); saveToLocal();
+                    };
+                    cellTeacher.appendChild(select);
+                }
+                row.appendChild(cellTeacher); tableBody.appendChild(row);
+            });
+        }
+
+        function addTeacherSelectRow(container, teacherList, subject, value, isFirst) {
+            const wrapper = document.createElement('div'); wrapper.className = 'teacher-input-group';
+            const select = createDropdown(teacherList, "teacher-select");
+            select.setAttribute('data-subject', subject); select.value = value || "";
+            checkTeacherSpecialty(select, subject, select.value);
+            select.onchange = function() { saveMultiTeacherState(subject, container); validateAssignments(); checkTeacherSpecialty(this, subject, this.value); saveToLocal(); };
+            wrapper.appendChild(select);
+            if (isFirst) {
+                const btnAdd = document.createElement('button'); btnAdd.className = 'btn-add'; btnAdd.innerText = '+';
+                btnAdd.onclick = function() { addTeacherSelectRow(container, teacherList, subject, "", false); saveMultiTeacherState(subject, container); validateAssignments(); saveToLocal(); };
+                wrapper.appendChild(btnAdd);
+            } else {
+                const btnRemove = document.createElement('button'); btnRemove.className = 'btn-remove'; btnRemove.innerText = 'x';
+                btnRemove.onclick = function() { container.removeChild(wrapper); saveMultiTeacherState(subject, container); validateAssignments(); saveToLocal(); };
+                wrapper.appendChild(btnRemove);
+            }
+            container.appendChild(wrapper);
+        }
+
+        function saveMultiTeacherState(subject, container) {
+            const values = []; container.querySelectorAll('select').forEach(sel => { values.push(sel.value); });
+            assignmentsState[subject] = values;
+        }
+
+        function checkTeacherSpecialty(selectElement, subject, teacherName) {
+            if (!teacherName) { selectElement.classList.remove('teacher-mismatch'); return; }
+            let isError = false;
+            if (teacherSpecialties[teacherName]) {
+                if (!teacherSpecialties[teacherName].has(subject)) isError = true;
+            } else {
+                if (restrictedSubjects.has(subject)) isError = true;
+            }
+            if (isError) selectElement.classList.add('teacher-mismatch'); else selectElement.classList.remove('teacher-mismatch');
+        }
+
+        function validateAssignments() {
+            const warningBox = document.getElementById('assignment-warning');
+            const footerAssign = document.getElementById('status-assign');
+            let hasMissing = false;
+            let totalSubjects = 0; let assignedSubjects = 0;
+            const assignRows = document.getElementById('assignments-body').querySelectorAll('tr');
+            assignRows.forEach(row => {
+                totalSubjects++;
+                let hasTeacher = false;
+                const selects = row.querySelectorAll('select');
+                selects.forEach(s => { if (s.value) hasTeacher = true; });
+                if (hasTeacher) assignedSubjects++; else hasMissing = true;
+                selects.forEach(s => { if (!s.value) s.classList.add('missing-assignment'); else s.classList.remove('missing-assignment'); });
+            });
+            if (hasMissing) warningBox.style.display = 'block'; else warningBox.style.display = 'none';
+            footerAssign.innerHTML = `<span>ΑΝΑΘΕΣΕΙΣ: ${assignedSubjects}/${totalSubjects}</span>`;
+            footerAssign.className = (totalSubjects > 0 && assignedSubjects === totalSubjects) ? 'status-box success' : 'status-box warning';
+        }
+
+        function fillDebug() {
+            document.getElementById('grade-select').value = 'ΣΤ';
+            document.getElementById('section-select').value = '1';
+            const scheduleRows = parseList(DEBUG_DATA_CSV).slice(1);
+            const tableRows = document.getElementById('table-body').querySelectorAll('tr');
+            for(let i=0; i<Math.min(scheduleRows.length, tableRows.length); i++) {
+                const parts = scheduleRows[i].split(',');
+                const selects = tableRows[i].querySelectorAll('select');
+                for(let j=0; j<selects.length; j++) { if (j+1 < parts.length) { let val = parts[j+1].trim(); if(val.includes("Β΄")) val = val.replace("Β΄", "Β'"); selects[j].value = val; } }
+            }
+            const assignLines = parseList(DEBUG_ASSIGNMENTS_CSV);
+            assignLines.forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 3) {
+                    const subj = parts[1].trim(); const teachers = parts.slice(2).map(t => t.trim());
+                    if (teachers.length > 1) assignmentsState[subj] = teachers; else assignmentsState[subj] = teachers[0];
+                }
+            });
+            handleMainChange(); 
+        }
+
+        function triggerImport() { document.getElementById('csv-input').click(); }
+        function handleFileSelect(event) {
+            const file = event.target.files[0]; if (!file) return;
+            const reader = new FileReader(); reader.onload = function(e) { importCSV(e.target.result); }; reader.readAsText(file);
+        }
+
+        function importCSV(csvText) {
+            assignmentsState = {};
+            const lines = csvText.trim().split('\n').map(l => l.trim()).filter(l => l !== "");
+            let rowIndex = 0; let foundClass = false; 
+            const tableRows = document.getElementById('table-body').querySelectorAll('tr');
+            for (let i = 1; i < lines.length; i++) { 
+                const line = lines[i]; if (!line) continue;
+                const firstCol = line.split(',')[0].trim(); const isTime = firstCol.includes(":"); 
+                if (isTime && rowIndex < tableRows.length) {
+                    const rowValues = parseCSVLine(line);
+                    const selects = tableRows[rowIndex].querySelectorAll('select');
+                    for(let j=0; j<selects.length; j++) { if (j+1 < rowValues.length) selects[j].value = rowValues[j+1]; }
+                    rowIndex++;
+                } else {
+                    const rowValues = parseCSVLine(line);
+                    if (rowValues.length >= 3) {
+                        if (!foundClass && rowValues[0]) {
+                            const fullClass = rowValues[0].trim().toUpperCase(); 
+                            let g = "", s = "";
+                            if (fullClass.startsWith("ΣΤ")) { g = "ΣΤ"; s = fullClass.substring(2); } else { g = fullClass.substring(0, 1); s = fullClass.substring(1); }
+                            const gradeSel = document.getElementById('grade-select'); const sectSel = document.getElementById('section-select');
+                            if (g) gradeSel.value = g; if (s) sectSel.value = s;
+                            foundClass = true; 
+                        }
+                        const subj = rowValues[1]; const teachers = rowValues.slice(2);
+                        if (teachers.length > 1) assignmentsState[subj] = teachers; else assignmentsState[subj] = teachers[0];
+                    }
+                }
+            }
+            handleMainChange(); alert("Επιτυχής Εισαγωγή!"); document.getElementById('csv-input').value = ''; 
+        }
+
+        function parseCSVLine(line) {
+            const values = []; let current = ''; let inQuotes = false;
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                if (char === '"') inQuotes = !inQuotes; else if (char === ',' && !inQuotes) { values.push(current); current = ''; } else current += char;
+            }
+            values.push(current); return values.map(v => v.trim().replace(/^"|"$/g, ''));
+        }
+
+        function exportToCSV() {
+            const grade = document.getElementById('grade-select').value; const section = document.getElementById('section-select').value;
+            if (!grade || !section) { alert("Παρακαλώ επιλέξτε Τάξη και Τμήμα πριν την εξαγωγή!"); return; }
+            let teacherName = ""; let greekTeacher = assignmentsState["ΕΛΛΗΝΙΚΑ"];
+            if (Array.isArray(greekTeacher) && greekTeacher.length > 0) teacherName = greekTeacher[0];
+            else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
+            if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
+            let fileName = `${grade}${section}_schedule.csv`; if (teacherName) fileName = `${grade}${section}_${teacherName}_schedule.csv`;
+            const className = `${grade}${section}`;
+            let csvContent = ""; const days = RAW_DAYS.split(',').map(s => s.trim()); csvContent += days.join(",") + "\n";
+            const scheduleRows = document.getElementById('table-body').querySelectorAll('tr');
+            scheduleRows.forEach(r => {
+                let rowData = []; rowData.push(r.cells[0].innerText);
+                r.querySelectorAll('select').forEach(sel => { let v = sel.value; if(v.includes(",")) v = `"${v}"`; rowData.push(v); });
+                csvContent += rowData.join(",") + "\n";
+            });
+            csvContent += "\n\n";
+            const assignRows = document.getElementById('assignments-body').querySelectorAll('tr');
+            assignRows.forEach(r => {
+                const subject = r.cells[0].innerText; let teachers = [];
+                r.querySelectorAll('select').forEach(sel => { if (sel.value) teachers.push(sel.value); });
+                teachers.sort((a, b) => a.localeCompare(b, 'el'));
+                if (teachers.length > 0) {
+                    let lineParts = [className, subject, ...teachers];
+                    let csvLine = lineParts.map(part => part.includes(",") ? `"${part}"` : part).join(",");
+                    csvContent += csvLine + "\n";
+                }
+            });
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = fileName;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        window.onload = initApp;
+    </script>
+</body>
+</html>
