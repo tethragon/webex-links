@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="el">
-<!-- v16 αφαιρέθηκαν τα spaces -->
+<!-- v17 προστέθηκαν προστασίες από περιπτώσεις κακών csv data -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -81,6 +81,7 @@
             font-size: 0.85rem; 
         }
 
+        /* Z-INDEX Fixes */
         th:first-child {
             position: sticky;
             left: 0;
@@ -430,6 +431,7 @@
             return { start: toMins(startStr), end: toMins(endStr), label: cleanStr };
         }
 
+        // --- UPDATE: ΔΙΚΛΕΙΔΑ ΑΣΦΑΛΕΙΑΣ ΣΤΗ ΔΗΜΙΟΥΡΓΙΑ ΠΙΝΑΚΑ ---
         function initTable() {
             const lines = RAW_SCHEDULE.trim().split('\n');
             if(lines.length === 0) return;
@@ -449,8 +451,13 @@
                 timeSlots.push({ ...timeData, rowIndex: i-1 });
 
                 const tr = document.createElement('tr');
-                cells.forEach((cellText, colIndex) => {
+                
+                // ΠΑΝΤΑ δημιουργούμε 6 κελιά (Ώρα + 5 Ημέρες)
+                for(let colIndex = 0; colIndex < 6; colIndex++) {
                     const td = document.createElement('td');
+                    // Αν υπάρχει περιεχόμενο στη σειρά το βάζουμε, αλλιώς κενό string
+                    const cellText = (cells[colIndex] !== undefined) ? cells[colIndex] : "";
+                    
                     td.innerText = cellText;
                     td.dataset.row = i-1;
                     td.dataset.col = colIndex; 
@@ -467,7 +474,7 @@
                         }
                     }
                     tr.appendChild(td);
-                });
+                }
                 tbody.appendChild(tr);
             }
         }
@@ -591,8 +598,12 @@
                 else openModal("FOREIGN");
             } else {
                 const tName = activeLessonData.teachers[0];
-                if(tName && linksMap[tName]) window.open(BASE_URL + linksMap[tName], '_blank');
-                else alert("Link not found");
+                if(tName && linksMap[tName]) {
+                    window.open(BASE_URL + linksMap[tName], '_blank');
+                } else {
+                    // UPDATE: Βελτιωμένο μήνυμα σφάλματος
+                    alert("Ο σύνδεσμος για τον/την εκπαιδευτικό " + (tName || "του μαθήματος") + " δεν βρέθηκε. Παρακαλώ επικοινωνήστε με τη γραμματεία.");
+                }
             }
         }
 
@@ -615,7 +626,6 @@
             resizeIframe();
         }
 
-        // UPDATE: ΑΛΛΑΓΗ ΠΛΗΚΤΡΟΥ ΑΠΟ PageUp ΣΕ ΑΣΤΕΡΑΚΙ (*)
         window.addEventListener('keydown', (e) => {
             if(e.key === "*") {
                 toggleDebugPanel();
