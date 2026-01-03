@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v3.1 (Remote Data)</title>
+    <title>Schedule Builder v3.4</title>
     <style>
         :root { 
             --primary-blue: #003366; /* Arsakeio Dark Blue */
@@ -153,16 +153,76 @@
             display: none;
         }
 
+        /* --- ΝΕΑ ΣΤΥΛ ΓΙΑ ΤΗ ΜΠΑΡΑ ΕΛΕΓΧΟΥ (Bar & Score) --- */
         .validation-report {
-            width: 100%;
-            max-width: 1200px;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: none; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                width: 100%;
+                max-width: 1200px;
+                background: white;
+                border-radius: 8px;
+                margin-bottom: 20px;
+                /* Αφαιρέσαμε το display: none από εδώ, το ελέγχουμε δυναμικά */
+                display: none; 
+                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                border: 1px solid var(--border-color);
+                overflow: hidden;
         }
+
+        .validation-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 15px 20px;
+                background: #fcfcfc;
+                cursor: pointer;
+                transition: background 0.2s;
+                border-bottom: 1px solid transparent;
+        }
+
+        .validation-header:hover { background: var(--hover-blue); }
+        .validation-header.open { border-bottom: 1px solid var(--border-color); background: #fff; }
+
+        .header-left { display: flex; align-items: center; gap: 15px; }
+
+        .header-title {
+                font-weight: bold;
+                color: var(--primary-blue);
+                font-size: 1.05rem;
+                text-transform: uppercase;
+        }
+
+        .score-badge {
+                padding: 4px 12px;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                font-weight: bold;
+                color: white;
+                transition: all 0.3s;
+        }
+        .score-badge.success { background-color: var(--success-green); }
+        .score-badge.error { background-color: var(--error-red); }
+
+        /* Το βελάκι */
+        .chevron {
+                width: 24px; height: 24px; fill: var(--primary-blue);
+                transition: transform 0.3s ease;
+        }
+        .chevron.rotate { transform: rotate(180deg); }
+
+        /* Το περιεχόμενο που ανοιγοκλείνει */
+        .validation-content {
+                display: none;
+                padding: 20px;
+                background: white;
+                animation: slideDown 0.3s ease-out;
+        }
+
+            @keyframes slideDown {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+
+        /* Διόρθωση στο Grid για να μην έχει διπλό border */
+        .validation-grid { border-top: none; padding-top: 0; }
         
         .assignment-warning {
             color: var(--error-red);
@@ -354,9 +414,21 @@
     </div>
 
     <div id="validation-report" class="validation-report">
-        <div id="assignment-warning" class="assignment-warning">⚠️ ΠΡΟΣΟΧΗ: Υπάρχουν μαθήματα χωρίς ανάθεση εκπαιδευτικού!</div>
-        <strong>Αναλυτικός Έλεγχος Μαθημάτων:</strong>
-        <div id="validation-grid" class="validation-grid"></div>
+        <div class="validation-header" onclick="toggleValidation()">
+            <div class="header-left">
+                <span class="header-title" style="font-size: 0.95rem;">ΜΑΘΗΜΑΤΑ ΜΕ ΟΡΘΗ ΔΗΛΩΣΗ ΩΡΩΝ:</span>
+                <span id="validation-score-badge" class="score-badge error">- / -</span>
+            </div>
+            <svg id="validation-arrow" class="chevron" viewBox="0 0 24 24">
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+            </svg>
+        </div>
+
+        <div id="validation-content" class="validation-content">
+            <div id="assignment-warning" class="assignment-warning">⚠️ ΠΡΟΣΟΧΗ: Υπάρχουν μαθήματα χωρίς ανάθεση εκπαιδευτικού!</div>
+            <div style="margin-bottom: 15px; color: #555;">Λεπτομέρειες Ωρών ανά Μάθημα:</div>
+            <div id="validation-grid" class="validation-grid"></div>
+        </div>
     </div>
 
     <div id="card-schedule" class="card">
@@ -948,70 +1020,137 @@
 
         function clearAllData() {
             if (confirm("ΠΡΟΣΟΧΗ: Είστε σίγουροι ότι θέλετε να διαγράψετε όλα τα δεδομένα;")) {
+        // 1. Διαγραφή από την τοπική μνήμη (LocalStorage)
                 localStorage.removeItem('arsakeiaSchedulerV1');
-                location.reload(); 
+
+        // 2. Μηδενισμός των βασικών πεδίων επιλογής
+                document.getElementById('region-select').value = "";
+
+        // Για το σχολείο, πρέπει να αδειάσουμε τις επιλογές και να το απενεργοποιήσουμε
+                const schoolSelect = document.getElementById('school-select');
+                schoolSelect.innerHTML = '<option value="" disabled selected>Σχολείο</option>';
+                schoolSelect.disabled = true;
+
+                document.getElementById('grade-select').value = "";
+                document.getElementById('section-select').value = "";
+
+        // 3. Καθαρισμός όλων των επιλογών μέσα στον πίνακα προγράμματος
+                document.querySelectorAll('#table-body select').forEach(s => s.value = "");
+
+        // 4. Μηδενισμός της εσωτερικής κατάστασης αναθέσεων
+                assignmentsState = {};
+
+        // 5. Ενημέρωση της εφαρμογής (κρύβει πίνακες ελέγχου, μηδενίζει μετρητές)
+                handleMainChange();
+
+        // 6. Κύλιση στην κορυφή της σελίδας για καθαρή αρχή
+                window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
 
         // ==========================================
         // VALIDATION & LOGIC
         // ==========================================
-        function validateSchedule() {
-            const grade = document.getElementById('grade-select').value;
-            const footerHours = document.getElementById('status-hours');
-            const footerSubj = document.getElementById('status-subjects'); 
-            const reportDiv = document.getElementById('validation-report');
-            const gridDiv = document.getElementById('validation-grid');
+        // --- ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΓΙΑ ΤΟ ΑΝΟΙΓΜΑ/ΚΛΕΙΣΙΜΟ ---
+        
+        function toggleValidation() {
+            const content = document.getElementById('validation-content');
+            const header = document.querySelector('.validation-header');
+            const arrow = document.getElementById('validation-arrow');
 
-            if (!grade) { 
-                reportDiv.style.display = 'none'; 
-                footerHours.innerHTML = `<span>ΩΡΕΣ: 0/${TARGET_TOTAL_HOURS}</span>`;
-                footerHours.className = 'status-box warning';
-                footerSubj.innerHTML = `<span>ΜΑΘΗΜΑΤΑ: -</span>`;
-                footerSubj.className = 'status-box warning';
-                return; 
-            }
-
-            reportDiv.style.display = 'block';
-            gridDiv.innerHTML = '';
-            const gradeMap = { 'Α':0, 'Β':1, 'Γ':2, 'Δ':3, 'Ε':4, 'ΣΤ':5 };
-            const idx = gradeMap[grade];
-            const selects = document.querySelectorAll('.subject-select');
-            const counts = {};
-            let total = 0;
-
-            selects.forEach(sel => {
-                if(sel.value) { counts[sel.value] = (counts[sel.value]||0)+1; total++; }
-            });
-
-            footerHours.innerHTML = `<span>ΩΡΕΣ: ${total}/${TARGET_TOTAL_HOURS}</span>`;
-            footerHours.className = (total === TARGET_TOTAL_HOURS) ? 'status-box success' : 'status-box warning';
-
-            let subjectsError = false;
-
-            for (const [subj, hoursArr] of Object.entries(rulesMap)) {
-                const req = hoursArr[idx];
-                const act = counts[subj] || 0;
-                const el = document.createElement('div');
-                el.className = 'validation-item';
-                
-                if (act === req) {
-                    el.classList.add('success'); el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (OK)</span>`;
-                } else {
-                    el.classList.add('error'); el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (ΛΑΘΟΣ)</span>`;
-                    subjectsError = true; 
-                }
-                gridDiv.appendChild(el);
-            }
-
-            if (subjectsError) {
-                footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: ΛΑΘΟΣ</span>';
-                footerSubj.className = 'status-box error'; 
+            if (content.style.display === 'block') {
+                content.style.display = 'none';
+                header.classList.remove('open');
+                arrow.classList.remove('rotate');
             } else {
-                footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: OK</span>';
-                footerSubj.className = 'status-box success'; 
+                content.style.display = 'block';
+                header.classList.add('open');
+                arrow.classList.add('rotate');
             }
         }
+
+
+// --- ΤΡΟΠΟΠΟΙΗΜΕΝΗ ΣΥΝΑΡΤΗΣΗ VALIDATION (ME SCORE X/Y) ---
+        function validateSchedule() {
+    const grade = document.getElementById('grade-select').value;
+    const footerHours = document.getElementById('status-hours');
+    const footerSubj = document.getElementById('status-subjects'); 
+    
+    // Στοιχεία UI
+    const reportDiv = document.getElementById('validation-report');
+    const gridDiv = document.getElementById('validation-grid');
+    const scoreBadge = document.getElementById('validation-score-badge');
+
+    if (!grade) { 
+        reportDiv.style.display = 'none'; 
+        footerHours.innerHTML = `<span>ΩΡΕΣ: 0/${TARGET_TOTAL_HOURS}</span>`;
+        footerHours.className = 'status-box warning';
+        footerSubj.innerHTML = `<span>ΜΑΘΗΜΑΤΑ: -</span>`;
+        footerSubj.className = 'status-box warning';
+        return; 
+    }
+
+    reportDiv.style.display = 'block';
+    gridDiv.innerHTML = '';
+    
+    const gradeMap = { 'Α':0, 'Β':1, 'Γ':2, 'Δ':3, 'Ε':4, 'ΣΤ':5 };
+    const idx = gradeMap[grade];
+    const selects = document.querySelectorAll('.subject-select');
+    const counts = {};
+    let totalHours = 0;
+
+    // Καταμέτρηση ωρών που έχουν τοποθετηθεί στο πρόγραμμα
+    selects.forEach(sel => {
+        if(sel.value) { counts[sel.value] = (counts[sel.value]||0)+1; totalHours++; }
+    });
+
+    footerHours.innerHTML = `<span>ΩΡΕΣ: ${totalHours}/${TARGET_TOTAL_HOURS}</span>`;
+    footerHours.className = (totalHours === TARGET_TOTAL_HOURS) ? 'status-box success' : 'status-box warning';
+
+    // --- ΥΠΟΛΟΓΙΣΜΟΣ ΣΚΟΡ (ΧΩΡΙΣ ΤΑ 0/0) ---
+    let correctRules = 0;   
+    let totalRules = 0;     
+
+    for (const [subj, hoursArr] of Object.entries(rulesMap)) {
+        const req = hoursArr[idx];
+        const act = counts[subj] || 0;
+
+        // --- ΒΑΣΙΚΗ ΑΛΛΑΓΗ ---
+        // Αν το μάθημα δεν προβλέπεται (0 ώρες) ΚΑΙ δεν έχει δηλωθεί (0 ώρες),
+        // το προσπερνάμε τελείως. Δεν μετράει στο σκορ, ούτε εμφανίζεται.
+        if (req === 0 && act === 0) continue;
+
+        // Αν φτάσαμε εδώ, σημαίνει ότι είτε το μάθημα χρειάζεται ώρες (req > 0),
+        // είτε έγινε λάθος και μπήκαν ώρες ενώ δεν έπρεπε (req=0, act>0).
+        totalRules++; 
+        
+        const el = document.createElement('div');
+        el.className = 'validation-item';
+        
+        if (act === req) {
+            correctRules++; 
+            el.classList.add('success'); 
+            el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (OK)</span>`;
+        } else {
+            el.classList.add('error'); 
+            el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (ΛΑΘΟΣ)</span>`;
+        }
+        gridDiv.appendChild(el);
+    }
+
+    // --- ΕΝΗΜΕΡΩΣΗ ΤΗΣ ΜΠΑΡΑΣ ---
+    scoreBadge.innerText = `${correctRules} / ${totalRules}`;
+
+    if (totalRules > 0 && correctRules === totalRules) {
+        scoreBadge.className = "score-badge success";
+        footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: OK</span>';
+        footerSubj.className = 'status-box success';
+    } else {
+        scoreBadge.className = "score-badge error";
+        footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: ΛΑΘΟΣ</span>';
+        footerSubj.className = 'status-box error';
+    }
+}
 
         function updateAssignmentsTable() {
             const tableBody = document.getElementById('assignments-body');
