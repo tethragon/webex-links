@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="el">
-<!-- v17 προστέθηκαν προστασίες από περιπτώσεις κακών csv data -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -16,6 +15,7 @@
             --next-cell-bg: #e3f2fd;
             --next-cell-border: #004a99;
             --panel-bg: #f8f9fa; 
+            --text-muted: #546e7a;
         }
 
         * { box-sizing: border-box; }
@@ -36,12 +36,23 @@
             align-items: center; 
         }
 
+        #school-header {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+
         h2 { 
             color: var(--primary-blue); 
             text-transform: uppercase; 
-            margin: 5px 0 15px; 
+            margin: 0 0 15px; 
             text-align: center; 
-            font-size: 1.2rem;
+            font-size: 1.3rem;
+            font-weight: 800;
             letter-spacing: 1px;
             user-select: none; 
             cursor: pointer; 
@@ -81,7 +92,6 @@
             font-size: 0.85rem; 
         }
 
-        /* Z-INDEX Fixes */
         th:first-child {
             position: sticky;
             left: 0;
@@ -266,9 +276,27 @@
             text-decoration: underline; cursor: pointer; 
         }
 
+        /* Loading Indicator */
+        #loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #eceff1; z-index: 5000;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            font-family: sans-serif;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
         @media screen and (max-width: 600px) {
             body { padding: 5px; }
-            h2 { font-size: 1rem; margin: 5px 0 10px; }
+            #school-header { font-size: 0.9rem; margin-top: 5px; }
+            h2 { font-size: 1.1rem; margin: 2px 0 10px; }
             .status-footer { flex-direction: column; text-align: center; gap: 10px; padding: 10px; }
             .enter-btn { width: 100%; padding: 12px; }
             .modal-content { margin: 25vh auto; }
@@ -278,6 +306,13 @@
 </head>
 <body>
 
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top:15px; color:#546e7a;">Φόρτωση δεδομένων...</p>
+    </div>
+
+    <div id="school-header"></div>
+    
     <h2 id="dynamic-title" onclick="handleSecretTap()">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</h2>
 
     <div class="schedule-card">
@@ -322,6 +357,27 @@
 
     <script>
         const BASE_URL = "https://arsakeio.webex.com/meet/";
+        const PRIMARY_LINKS_URL = "https://tethragon.github.io/webex-links/teacher_webex_links.js";
+
+        // =========================================================================================
+        // ΣΗΜΑΝΤΙΚΗ ΣΗΜΕΙΩΣΗ - ΡΥΘΜΙΣΗ FALLBACK URL
+        // =========================================================================================
+        // Γράψτε την εναλλακτική διεύθυνση (fallback url) στην παρακάτω μεταβλητή.
+        // Εάν η κύρια διεύθυνση αποτύχει, το σύστημα θα προσπαθήσει να φορτώσει από εδώ.
+        // =========================================================================================
+        const FALLBACK_LINKS_URL = "https://tethragon.github.io/webex-links/teacher_webex_links.js"; 
+        // =========================================================================================
+
+        const RAW_SCHOOL_NAMES = `
+ΨΥΧΙΚΟ,1,Α' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
+ΨΥΧΙΚΟ,2,Β' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
+ΨΥΧΙΚΟ,3,Γ' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
+ΕΚΑΛΗ,1,Α' ΑΡΣΑΚΕΙΟ-ΤΟΣΙΤΣΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΚΑΛΗΣ
+ΕΚΑΛΗ,2,Β' ΑΡΣΑΚΕΙΟ-ΤΟΣΙΤΣΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΚΑΛΗΣ
+ΕΚΑΛΗ,3,Γ' ΑΡΣΑΚΕΙΟ-ΤΟΣΙΤΣΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΚΑΛΗΣ
+ΘΕΣΣΑΛΟΝΙΚΗ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΘΕΣΣΑΛΟΝΙΚΗΣ
+ΠΑΤΡΑ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΤΡΑΣ
+ΙΩΑΝΝΙΝΑ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΙΩΑΝΝΙΝΩΝ`;
 
         const RAW_SCHEDULE = `
 ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
@@ -335,67 +391,32 @@
 14:10-14:50,Β΄ ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
 
         const RAW_TEACHERS = `
-ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ
-ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ
-ΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ
-ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ
-ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ
-ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
-ΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ
-ΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
-ΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ
-ΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ
-ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
-ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ
-ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ`;
+ΨΥΧΙΚΟ,2,ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
+ΨΥΧΙΚΟ,2,ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ`;
 
-        const RAW_LINKS = `
-ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ,aggelou.g
-ΑΘΑΝΑΣΙΟΥ ΜΑΡΙΑ-ΧΡΙΣΤΙΝΑ,athanasiou.mc
-ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,alexopoulou.e
-ΑΝΔΡΙΑΝΟΠΟΥΛΟΥ ΠΟΛY,andrianopoulou.p
-ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,andriopoulou_d
-ΑΡΤΑΒΑΝΗ ΘΕΟΔΩΡΑ,artavani.t
-ΒΑΣΙΛΑ ΚΑΤΕΡΙΝΑ,vasila.k
-ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ,venardou.ch
-ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ,votanopoulou.e
-ΒΡΕΤΤΑΚΟΥ ΒΑΡΒΑΡΑ,vrettakou.v
-ΓΕΡΑΝΗ ΧΑΡΙΚΛΕΙΑ,gerani.c
-ΓΙΑΚΟΥΒΗ ΚΩΝΣΤΑΝΤΙΝΑ,giakouvi.k
-ΓΙΑΝΝΑΚΗ ΑΝΝΑ,giannaki.an
-ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,dimitropoulou.d
-ΖΕΡΒΑ ΕΙΡΗΝΗ,zerva.e
-ΚΑΛΛΙΑΝΤΑ ΜΑΡΙΑ,kallianta.m
-ΚΑΤΣΑ ΝΑΝΣΥ,katsa.a
-ΚΗΤΤΑ ΕΛΙΝΑ,kitta.e
-ΚΟΚΚΟΛΑΤΟΥ ΑΛΙΝΑ,kokkolatou.a
-ΚΟΝΤΟΥ ΑΝΘΗ,kontou.a
-ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,kiriaki.k
-ΛΟΡΕΝΤΖΟΥ ΖΩΗ,lorentzou.z
-ΜΑΘΙΟΥΔΑΚΗ ΕΥΑΓΓΕΛΙΑ,mathioudaki.e
-ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ,miliopoulou.z
-ΜΟΥΡΙΚΗ ΚΑΤΕΡΙΝΑ,mouriki.a
-ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ,barlas.n
-ΜΠΟΥΡΔΑΚΟΥ ΜΑΡΙΖΑ,bourdakou.m
-ΜΥΤΑΚΙΔΗ ΚΑΤΕΡΙΝΑ,mytakidi.k
-ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g
-ΣΟΛΑΚΑΚΗ ΧΡΙΣΤΙΝΑ,solakaki.c
-ΣΠΥΡΟΠΟΥΛΟΥ ΜΠΕΤΥ,spyropoulou.p
-ΣΤΕΦΟΥ ΑΣΗΜΙΝΑ,astefou
-ΣΥΚΙΩΤΗ ΧΡΙΣΤΙΝΑ,sykioti.c
-ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ,tsirou.o
-ΦΡΑΓΚΟΥΛΗ ΕΙΡΗΝΗ,fragouli.e
-ΧΑΤΖΗΙΩΑΝΝΟΥ ΔΕΣΠΟΙΝΑ,chatziioannou.d
-ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ,chorianopoulos.k`;
+        // Αρχικοποίηση RAW_LINKS ως κενό, θα γεμίσει από το εξωτερικό αρχείο
+        let RAW_LINKS = "";
 
         const linksMap = {};
         const teacherMap = {};
+        const schoolNamesMap = {}; 
         let departmentName = "ΤΜΗΜΑ";
         let timeSlots = []; 
         let activeLessonData = null;
@@ -404,21 +425,108 @@
         let debugTapCount = 0;
         let debugTapTimer = null;
 
+        // --- LOADER LOGIC ---
+        function loadScript(url) {
+            return new Promise((resolve, reject) => {
+                const script = document.createElement('script');
+                // Προσθήκη timestamp για αποφυγή caching
+                const cacheBuster = "?t=" + new Date().getTime();
+                script.src = url + cacheBuster;
+                
+                script.onload = () => {
+                    // Ελέγχουμε αν η μεταβλητή window.RAW_LINKS έχει οριστεί από το αρχείο
+                    if (window.RAW_LINKS) {
+                        RAW_LINKS = window.RAW_LINKS; // Ανάθεση στην τοπική μεταβλητή
+                        resolve();
+                    } else {
+                        reject(new Error("Το αρχείο φορτώθηκε αλλά δεν βρέθηκαν δεδομένα συνδέσμων."));
+                    }
+                };
+                script.onerror = () => reject(new Error(`Αποτυχία φόρτωσης του script: ${url}`));
+                document.head.appendChild(script);
+            });
+        }
+
+        async function initApp() {
+            try {
+                // Προσπάθεια φόρτωσης από την κύρια διεύθυνση
+                await loadScript(PRIMARY_LINKS_URL);
+            } catch (error) {
+                console.warn("Αποτυχία κύριας πηγής:", error);
+                console.log("Προσπάθεια φόρτωσης από Fallback URL...");
+                try {
+                    // Προσπάθεια φόρτωσης από την εφεδρική διεύθυνση
+                    await loadScript(FALLBACK_LINKS_URL);
+                } catch (fallbackError) {
+                    console.error("Αποτυχία και στην εφεδρική πηγή:", fallbackError);
+                    document.getElementById('loader-overlay').innerHTML = `
+                        <div style="color:red; text-align:center; padding:20px;">
+                            <h3>Σφάλμα Φόρτωσης</h3>
+                            <p>Δεν ήταν δυνατή η ανάκτηση των συνδέσμων Webex.</p>
+                            <p>Ελέγξτε τη σύνδεσή σας και ανανεώστε τη σελίδα.</p>
+                            <button onclick="location.reload()" class="enter-btn" style="margin-top:10px;">Ανανέωση</button>
+                        </div>
+                    `;
+                    return; // Διακοπή εκτέλεσης
+                }
+            }
+
+            // Αν φτάσουμε εδώ, τα δεδομένα έχουν φορτωθεί επιτυχώς
+            document.getElementById('loader-overlay').style.display = 'none';
+            
+            parseData();
+            initTable();
+            checkCurrentLesson();
+            startTimer();
+            resizeIframe();
+        }
+        // --------------------
+
         function parseData() {
-            RAW_LINKS.trim().split('\n').forEach(line => {
+            // 1. Parse Links (από το loaded RAW_LINKS)
+            if(RAW_LINKS) {
+                RAW_LINKS.trim().split('\n').forEach(line => {
+                    const parts = line.split(',').map(s => s.trim());
+                    if(parts.length >= 2) linksMap[parts[0]] = parts[1];
+                });
+            }
+
+            // 2. Parse School Names
+            RAW_SCHOOL_NAMES.trim().split('\n').forEach(line => {
                 const parts = line.split(',').map(s => s.trim());
-                if(parts.length >= 2) linksMap[parts[0]] = parts[1];
+                if(parts.length >= 3) {
+                    const key = parts[0] + "_" + parts[1]; 
+                    schoolNamesMap[key] = parts[2];
+                }
             });
 
+            // 3. Parse Teachers
             const teacherLines = RAW_TEACHERS.trim().split('\n');
+            let foundSchoolInfo = false;
+
             teacherLines.forEach((line, index) => {
                 const parts = line.split(',').map(s => s.trim());
-                if(parts.length < 2) return;
-                const [dept, subject, ...teachers] = parts;
-                if(index === 0) departmentName = dept;
-                teacherMap[subject] = teachers.filter(t => t !== "");
+                if(parts.length < 4) return;
+                
+                const region = parts[0];
+                const schoolId = parts[1];
+                const dept = parts[2];
+                const subject = parts[3];
+                const teachers = parts.slice(4).filter(t => t !== "");
+
+                if(!foundSchoolInfo) {
+                    departmentName = dept;
+                    const schoolKey = region + "_" + schoolId;
+                    const fullSchoolName = schoolNamesMap[schoolKey] || "";
+                    
+                    document.getElementById('school-header').innerText = fullSchoolName;
+                    document.getElementById('dynamic-title').innerText = `ΤΜΗΜΑ ${departmentName} - ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ`;
+                    
+                    foundSchoolInfo = true;
+                }
+                
+                teacherMap[subject] = teachers;
             });
-            document.getElementById('dynamic-title').innerText = `ΤΜΗΜΑ ${departmentName} - ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ`;
         }
 
         function parseTimeRange(rangeStr) {
@@ -431,7 +539,6 @@
             return { start: toMins(startStr), end: toMins(endStr), label: cleanStr };
         }
 
-        // --- UPDATE: ΔΙΚΛΕΙΔΑ ΑΣΦΑΛΕΙΑΣ ΣΤΗ ΔΗΜΙΟΥΡΓΙΑ ΠΙΝΑΚΑ ---
         function initTable() {
             const lines = RAW_SCHEDULE.trim().split('\n');
             if(lines.length === 0) return;
@@ -452,10 +559,8 @@
 
                 const tr = document.createElement('tr');
                 
-                // ΠΑΝΤΑ δημιουργούμε 6 κελιά (Ώρα + 5 Ημέρες)
                 for(let colIndex = 0; colIndex < 6; colIndex++) {
                     const td = document.createElement('td');
-                    // Αν υπάρχει περιεχόμενο στη σειρά το βάζουμε, αλλιώς κενό string
                     const cellText = (cells[colIndex] !== undefined) ? cells[colIndex] : "";
                     
                     td.innerText = cellText;
@@ -601,7 +706,6 @@
                 if(tName && linksMap[tName]) {
                     window.open(BASE_URL + linksMap[tName], '_blank');
                 } else {
-                    // UPDATE: Βελτιωμένο μήνυμα σφάλματος
                     alert("Ο σύνδεσμος για τον/την εκπαιδευτικό " + (tName || "του μαθήματος") + " δεν βρέθηκε. Παρακαλώ επικοινωνήστε με τη γραμματεία.");
                 }
             }
@@ -737,11 +841,8 @@
             }
         }
 
-        parseData();
-        initTable();
-        checkCurrentLesson();
-        startTimer();
-        window.onload = resizeIframe;
+        // Εκκίνηση της εφαρμογής με το Loader
+        initApp();
     </script>
 </body>
 </html>
