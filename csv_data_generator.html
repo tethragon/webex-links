@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v3.4</title>
+    <title>Schedule Builder v3.6</title>
     <style>
         :root { 
             --primary-blue: #003366; /* Arsakeio Dark Blue */
@@ -360,6 +360,46 @@
             .controls-area { flex-direction: column; align-items: center; }
             .vertical-sep { width: 100%; height: 1px; margin: 10px 0; }
         }
+        /* --- CSS ΓΙΑ ΤΟ DISMISSIBLE INFO BOX --- */
+        .info-tip-box {
+            background-color: #e3f2fd; /* Απαλό μπλε Arsakeio */
+            color: var(--primary-blue);
+            padding: 10px 20px;
+            border-bottom: 1px solid #bbdefb;
+            display: none; /* Κρυφό αρχικά, το ανοίγει η JS αν δεν έχει κλείσει */
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9rem;
+            animation: fadeIn 0.5s;
+        }
+
+        .tip-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tip-close-btn {
+            background: none;
+            border: none;
+            font-size: 1.4rem;
+            color: #003366;
+            cursor: pointer;
+            padding: 0 5px;
+            line-height: 1;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+
+        .tip-close-btn:hover {
+            opacity: 1;
+            color: var(--error-red);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -422,6 +462,14 @@
             <svg id="validation-arrow" class="chevron" viewBox="0 0 24 24">
                 <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
             </svg>
+        </div>
+
+        <div id="multi-select-tip" class="info-tip-box">
+            <div class="tip-content">
+                <span style="font-size: 1.2rem;">💡</span>
+                <span><strong>Tip:</strong> Μπορείτε να επιλέξετε πολλά πεδία ταυτόχρονα κρατώντας πατημένο το πλήκτρο <strong>CTRL</strong> + <strong>Click</strong>.</span>
+            </div>
+            <button class="tip-close-btn" onclick="dismissTip()" title="Κλείσιμο και να μην εμφανιστεί ξανά">×</button>
         </div>
 
         <div id="validation-content" class="validation-content">
@@ -693,6 +741,7 @@
             });
 
             loadFromLocal();
+            checkTipStatus();
         }
 
         // ==========================================
@@ -1069,6 +1118,28 @@
             }
         }
 
+        // --- LOGIC ΓΙΑ ΤΟ INFO TIP ---
+        function checkTipStatus() {
+    // Ελέγχουμε αν ο χρήστης το έχει κλείσει στο παρελθόν
+            const isHidden = localStorage.getItem('hideMultiSelectTip');
+            const tipBox = document.getElementById('multi-select-tip');
+
+            if (!isHidden && tipBox) {
+        tipBox.style.display = 'flex'; // Εμφάνιση αν δεν έχει αποθηκευτεί το 'hide'
+    } else if (tipBox) {
+        tipBox.style.display = 'none';
+    }
+}
+
+function dismissTip() {
+    const tipBox = document.getElementById('multi-select-tip');
+    if (tipBox) {
+        tipBox.style.display = 'none';
+        // Αποθήκευση της επιλογής για πάντα
+        localStorage.setItem('hideMultiSelectTip', 'true');
+    }
+}
+
 
 // --- ΤΡΟΠΟΠΟΙΗΜΕΝΗ ΣΥΝΑΡΤΗΣΗ VALIDATION (ME SCORE X/Y) ---
         function validateSchedule() {
@@ -1193,27 +1264,62 @@
             });
         }
 
+        
         function addTeacherSelectRow(container, teacherList, subject, value, isFirst) {
-            const wrapper = document.createElement('div'); wrapper.className = 'teacher-input-group';
+            const wrapper = document.createElement('div'); 
+            wrapper.className = 'teacher-input-group';
+
             const select = createDropdown(teacherList, "teacher-select");
-            select.setAttribute('data-subject', subject); select.value = value || "";
+            select.setAttribute('data-subject', subject); 
+            select.value = value || "";
             checkTeacherSpecialty(select, subject, select.value);
-            
+
             select.onchange = function() { handleTeacherChange(this); };
-            
+
             wrapper.appendChild(select);
+
             if (isFirst) {
-                const btnAdd = document.createElement('button'); btnAdd.className = 'btn-add'; btnAdd.innerText = '+';
-                btnAdd.onclick = function() { addTeacherSelectRow(container, teacherList, subject, "", false); saveMultiTeacherState(subject, container); validateAssignments(); saveToLocal(); };
+                // Κουμπί Προσθήκης (+)
+                const btnAdd = document.createElement('button'); 
+                btnAdd.className = 'btn-add'; 
+                btnAdd.innerText = '+';
+                btnAdd.onclick = function() { 
+                    addTeacherSelectRow(container, teacherList, subject, "", false); 
+                    saveMultiTeacherState(subject, container); 
+                    validateAssignments(); 
+                    saveToLocal(); 
+                };
                 wrapper.appendChild(btnAdd);
             } else {
-                const btnRemove = document.createElement('button'); btnRemove.className = 'btn-remove'; btnRemove.innerText = 'x';
-                btnRemove.onclick = function() { container.removeChild(wrapper); saveMultiTeacherState(subject, container); validateAssignments(); saveToLocal(); };
+                // Κουμπί Διαγραφής (x) με Επιβεβαίωση
+                const btnRemove = document.createElement('button'); 
+                btnRemove.className = 'btn-remove'; 
+                btnRemove.innerText = 'x';
+
+                btnRemove.onclick = function() { 
+                    const teacherName = select.value; // Παίρνουμε το όνομα του εκπαιδευτικού
+                    
+                    // Αν υπάρχει επιλεγμένος εκπαιδευτικός, ζητάμε επιβεβαίωση
+                    if (teacherName && teacherName.trim() !== "") {
+                        const confirmed = confirm(`Θέλετε να διαγράψετε την ανάθεση: ${teacherName};`);
+                        if (!confirmed) {
+                            return; // Αν πατήσει "Ακύρωση", σταματάμε εδώ.
+                        }
+                    }
+                    
+                    // Προχωράμε στη διαγραφή
+                    container.removeChild(wrapper); 
+                    saveMultiTeacherState(subject, container); 
+                    validateAssignments(); 
+                    saveToLocal(); 
+                };
+                
                 wrapper.appendChild(btnRemove);
             }
             container.appendChild(wrapper);
         }
 
+        
         function saveMultiTeacherState(subject, container) {
             const values = []; container.querySelectorAll('select').forEach(sel => { values.push(sel.value); });
             assignmentsState[subject] = values;
