@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v3.6</title>
+    <title>Schedule Builder v3.7</title>
     <style>
         :root { 
             --primary-blue: #003366; /* Arsakeio Dark Blue */
@@ -1507,9 +1507,16 @@ function dismissTip() {
             else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
             if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
             
-            let fileName = `${region}_${school}_${grade}${section}_schedule.csv`; 
-            if (teacherName) fileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule.csv`;
-            if (!isComplete) fileName = fileName.replace(".csv", "_INCOMPLETE.csv");
+            // Παλιό: Αλλαγή από csv --> text για να γλιτώσω από τους άσχετους που θα ανοίξουν σε excel
+            //let fileName = `${region}_${school}_${grade}${section}_schedule.csv`; 
+            //if (teacherName) fileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule.csv`;
+            //if (!isComplete) fileName = fileName.replace(".csv", "_INCOMPLETE.csv");
+
+            // ΝΕΟ:
+            let fileName = `${region}_${school}_${grade}${section}_schedule.txt`; // Αλλαγή σε .txt
+            if (teacherName) fileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule.txt`;
+            if (!isComplete) fileName = fileName.replace(".txt", "_INCOMPLETE.txt");
+
 
             const className = `${grade}${section}`;
             let csvContent = ""; 
@@ -1549,9 +1556,8 @@ function dismissTip() {
             // --------------------- Παλιά εντολή που κατέβαζε type csv αλλά υπάρχει σενάριο να προτείνει ο browser open with excel
             // const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
 
-            // Χρησιμοποιούμε 'application/octet-stream' για να αναγκάσουμε τον browser να κάνει Save
-            // αντί να προτείνει Open with Excel.
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'application/octet-stream' });
+            // ΝΕΟ BLOB:
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = fileName;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
