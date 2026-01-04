@@ -1546,7 +1546,12 @@ function dismissTip() {
                 }
             });
             
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+            // --------------------- Παλιά εντολή που κατέβαζε type csv αλλά υπάρχει σενάριο να προτείνει ο browser open with excel
+            // const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+
+            // Χρησιμοποιούμε 'application/octet-stream' για να αναγκάσουμε τον browser να κάνει Save
+            // αντί να προτείνει Open with Excel.
+            const blob = new Blob(["\uFEFF" + csvContent], { type: 'application/octet-stream' });
             const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = fileName;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
