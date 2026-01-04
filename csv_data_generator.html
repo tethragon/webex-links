@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v3.7</title>
+    <title>Schedule Builder v3.8</title>
     <style>
         :root { 
             --primary-blue: #003366; /* Arsakeio Dark Blue */
@@ -289,7 +289,7 @@
 
         #schedule-table th { background: var(--primary-blue); color: white; position: sticky; top: 0; z-index: 20; }
         #schedule-table th:first-child { left: 0; z-index: 30; }
-        #schedule-table td:first-child { position: sticky; left: 0; z-index: 15; background: #fcfcfc; font-weight: bold; white-space: nowrap; }
+        #schedule-table td:first-child { position: sticky; left: 0; z-index: 15; background: #fcfcfc; font-weight: bold; white-space: nowrap;}
 
         #assignments-table th { background: #455a64; color: white; text-align: left; padding: 10px; }
         #assignments-table td { text-align: left; padding: 10px 8px; vertical-align: middle; }
@@ -399,6 +399,15 @@
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
+        }
+    
+        /* --- FIX ΓΙΑ ΤΟ MULTI-SELECT --- */
+        /* Απενεργοποιεί το μπλε μαρκάρισμα (text selection) όταν γίνεται κλικ γύρω από τα selects */
+        td, th, .control-group, .teacher-input-group, .validation-header {
+            -webkit-user-select: none; /* Safari / Chrome */
+            -moz-user-select: none;    /* Firefox */
+            -ms-user-select: none;     /* IE / Edge */
+            user-select: none;         /* Standard */
         }
     </style>
 </head>
