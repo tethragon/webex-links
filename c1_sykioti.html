@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="el">
+<!-- VERSION: v3.1 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -329,22 +330,27 @@
     </div>
 
     <div id="debug-panel">
-        <strong>DEBUG: </strong>
-        <select id="debug-day">
-            <option value="1">Δευτέρα</option>
-            <option value="2">Τρίτη</option>
-            <option value="3">Τετάρτη</option>
-            <option value="4">Πέμπτη</option>
-            <option value="5">Παρασκευή</option>
-            <option value="6">Σάββατο</option>
-            <option value="0">Κυριακή</option>
-        </select>
-        
-        <input type="number" id="debug-hour" class="time-input" min="0" max="23" placeholder="HH" value="08"> : 
-        <input type="number" id="debug-minute" class="time-input" min="0" max="59" placeholder="MM" value="00">
-        
-        <button onclick="applyDebugTime()">SET</button>
-        <button onclick="resetDebug()" style="background:#546e7a;">RESET</button>
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <strong>DEBUG:</strong>
+            <select id="debug-day">
+                <option value="1">Δευτέρα</option>
+                <option value="2">Τρίτη</option>
+                <option value="3">Τετάρτη</option>
+                <option value="4">Πέμπτη</option>
+                <option value="5">Παρασκευή</option>
+                <option value="6">Σάββατο</option>
+                <option value="0">Κυριακή</option>
+            </select>
+            
+            <input type="number" id="debug-hour" class="time-input" min="0" max="23" placeholder="HH" value="08"> : 
+            <input type="number" id="debug-minute" class="time-input" min="0" max="59" placeholder="MM" value="00">
+            
+            <button onclick="applyDebugTime()">SET</button>
+            <button onclick="resetDebug()" style="background:#546e7a;">RESET</button>
+            
+            <!-- Εδώ θα εμφανιστεί η έκδοση -->
+            <span id="version-display" style="margin-left: auto; font-size: 0.85rem; color: #ffd54f; font-weight: bold; white-space: nowrap;"></span>
+        </div>
     </div>
 
     <div id="modal" class="modal">
@@ -379,8 +385,7 @@
 ΠΑΤΡΑ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΤΡΑΣ
 ΙΩΑΝΝΙΝΑ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΙΩΑΝΝΙΝΩΝ`;
 
-       const RAW_SCHEDULE = `
-ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
+        const RAW_SCHEDULE = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
 8:10-8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ
 9:00-9:45,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΕΛΛΗΝΙΚΑ
 10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΑΓΓΛΙΚΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΓΥΜΝΑΣΤΙΚΗ,ΑΓΓΛΙΚΑ
@@ -390,8 +395,7 @@
 13:25-14:05,Β’ ΞΕΝΗ ΓΛΩΣΣΑ,ΘΡΗΣΚΕΥΤΙΚΑ,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ
 14:10-14:50,ΓΥΜΝΑΣΤΙΚΗ,ΜΣ/ΔΣ,ΕΡΓ. ΔΕΞ.,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΟΥΣΙΚΗ`;
 
-        const RAW_TEACHERS = `
-ΨΥΧΙΚΟ,2,Γ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΠΟΥΡΔΑΚΟΥ ΜΑΡΙΖΑ
+        const RAW_TEACHERS = `ΨΥΧΙΚΟ,2,Γ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΠΟΥΡΔΑΚΟΥ ΜΑΡΙΖΑ
 ΨΥΧΙΚΟ,2,Γ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΧΑΤΖΗΙΩΑΝΝΟΥ ΔΕΣΠΟΙΝΑ
 ΨΥΧΙΚΟ,2,Γ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ
 ΨΥΧΙΚΟ,2,Γ1,ΓΥΜΝΑΣΤΙΚΗ,ΑΘΑΝΑΣΙΟΥ ΜΑΡΙΑ-ΧΡΙΣΤΙΝΑ
@@ -422,6 +426,16 @@
         let timerInterval = null;
         let debugTapCount = 0;
         let debugTapTimer = null;
+
+        // --- GET VERSION FROM 1st COMMENT ---
+        function getAppVersion() {
+            const firstChild = document.documentElement.firstChild;
+            if (firstChild && firstChild.nodeType === 8) { // 8 = COMMENT_NODE
+                const match = firstChild.textContent.match(/VERSION:\s*(\S+)/);
+                return match ? match[1] : "";
+            }
+            return "";
+        }
 
         // --- LOADER LOGIC ---
         function loadScript(url) {
@@ -725,6 +739,14 @@
             const p = document.getElementById('debug-panel');
             const isVisible = (p.style.display === "block");
             p.style.display = isVisible ? "none" : "block";
+            
+            if (!isVisible) {
+                const version = getAppVersion();
+                document.getElementById('version-display').textContent = version || "–";
+            } else {
+                document.getElementById('version-display').textContent = "";
+            }
+            
             resizeIframe();
         }
 
