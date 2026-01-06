@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v3.8</title>
+    <title>Schedule Builder v3.9</title>
     <style>
         :root { 
             --primary-blue: #003366; /* Arsakeio Dark Blue */
@@ -1516,15 +1516,23 @@ function dismissTip() {
             else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
             if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
             
-            // Παλιό: Αλλαγή από csv --> text για να γλιτώσω από τους άσχετους που θα ανοίξουν σε excel
-            //let fileName = `${region}_${school}_${grade}${section}_schedule.csv`; 
-            //if (teacherName) fileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule.csv`;
-            //if (!isComplete) fileName = fileName.replace(".csv", "_INCOMPLETE.csv");
+            // Παράδειγμα timestamp: 20260106_153045 (για 06/01/2026 15:30:45)
+            const now = new Date();
+            const timestamp = now.getFullYear() +
+                String(now.getMonth() + 1).padStart(2, '0') +
+                String(now.getDate()).padStart(2, '0') +
+                '_' +
+                String(now.getHours()).padStart(2, '0') +
+                String(now.getMinutes()).padStart(2, '0') +
+                String(now.getSeconds()).padStart(2, '0');
 
-            // ΝΕΟ:
-            let fileName = `${region}_${school}_${grade}${section}_schedule.txt`; // Αλλαγή σε .txt
-            if (teacherName) fileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule.txt`;
-            if (!isComplete) fileName = fileName.replace(".txt", "_INCOMPLETE.txt");
+            // ΝΕΟ: Δημιουργία βασικού ονόματος χωρίς κατάληξη
+            let baseFileName = `${region}_${school}_${grade}${section}_schedule`;
+            if (teacherName) baseFileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule`;
+
+            // Προσθήκη timestamp και κατάληξης
+            let fileName = `${baseFileName}_${timestamp}.txt`;
+            if (!isComplete) fileName = fileName.replace(".txt", "_INCOMPLETE.txt"); // Αυτό θα γίνει: ..._20260106_153045_INCOMPLETE.txt
 
 
             const className = `${grade}${section}`;
