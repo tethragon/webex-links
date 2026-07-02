@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v3.9</title>
+    <title>Schedule Builder v4.1 (Unified - Not Taught Feature)</title>
     <style>
         :root { 
-            --primary-blue: #003366; /* Arsakeio Dark Blue */
-            --secondary-gold: #c5a059; /* Arsakeio Gold */
+            --primary-blue: #003366; 
+            --secondary-gold: #c5a059; 
             --hover-blue: #e3f2fd; 
             --border-color: #e0e0e0; 
             --error-red: #d32f2f;
             --success-green: #2e7d32;
             --warning-orange: #f57c00;
+            --export-html-color: #7b1fa2; 
         }
 
         * { box-sizing: border-box; }
@@ -45,7 +46,6 @@
             display: inline-block;
         }
 
-        /* Loading Overlay */
         #loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(255,255,255,0.9); z-index: 9999;
@@ -58,7 +58,6 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #loading-text { margin-top: 15px; color: var(--primary-blue); font-weight: bold; }
 
-        /* Controls Area */
         .controls-area {
             background: white;
             padding: 20px;
@@ -87,12 +86,8 @@
             text-transform: uppercase;
         }
 
-        .select-row {
-            display: flex;
-            gap: 10px;
-        }
+        .select-row { display: flex; gap: 10px; }
 
-        /* Inputs within Controls */
         .controls-area select {
             padding: 8px 12px;
             border: 1px solid #ccc;
@@ -103,189 +98,86 @@
             background-color: #fff;
         }
 
-        /* Separator */
-        .vertical-sep {
-            width: 1px;
-            height: 50px;
-            background-color: #ddd;
-            margin: 0 10px;
-        }
+        .vertical-sep { width: 1px; height: 50px; background-color: #ddd; margin: 0 10px; }
 
-        /* General Selects */
         select {
-            width: 100%;
-            min-width: 150px;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #fff;
-            cursor: pointer;
+            width: 100%; min-width: 150px; padding: 8px;
+            border: 1px solid #ccc; border-radius: 4px;
+            background-color: #fff; cursor: pointer;
         }
         
-        select:disabled {
-            background-color: #e0e0e0;
-            color: #888;
-            cursor: not-allowed;
-        }
-        
-        select:focus { 
-            border-color: var(--primary-blue); 
-            outline: 2px solid var(--hover-blue);
-        }
+        select:disabled { background-color: #e0e0e0; color: #888; cursor: not-allowed; }
+        select:focus { border-color: var(--primary-blue); outline: 2px solid var(--hover-blue); }
 
-        /* Multi-Select Highlight */
-        .multi-selected {
-            outline: 3px solid var(--warning-orange) !important;
-            background-color: #fff3e0 !important;
-        }
+        .multi-selected { outline: 3px solid var(--warning-orange) !important; background-color: #fff3e0 !important; }
 
-        /* Warnings */
         .no-teachers-warning {
-            flex-basis: 100%;
-            color: var(--error-red);
-            font-weight: bold;
-            text-align: center;
-            padding: 10px;
-            background: #ffebee;
-            border: 1px solid var(--error-red);
-            border-radius: 4px;
-            margin-top: 10px;
-            display: none;
+            flex-basis: 100%; color: var(--error-red); font-weight: bold; text-align: center;
+            padding: 10px; background: #ffebee; border: 1px solid var(--error-red);
+            border-radius: 4px; margin-top: 10px; display: none;
         }
 
-        /* --- ΝΕΑ ΣΤΥΛ ΓΙΑ ΤΗ ΜΠΑΡΑ ΕΛΕΓΧΟΥ (Bar & Score) --- */
         .validation-report {
-                width: 100%;
-                max-width: 1200px;
-                background: white;
-                border-radius: 8px;
-                margin-bottom: 20px;
-                /* Αφαιρέσαμε το display: none από εδώ, το ελέγχουμε δυναμικά */
-                display: none; 
-                box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                border: 1px solid var(--border-color);
-                overflow: hidden;
+                width: 100%; max-width: 1200px; background: white; border-radius: 8px;
+                margin-bottom: 20px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                border: 1px solid var(--border-color); overflow: hidden;
         }
 
         .validation-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 15px 20px;
-                background: #fcfcfc;
-                cursor: pointer;
-                transition: background 0.2s;
-                border-bottom: 1px solid transparent;
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 15px 20px; background: #fcfcfc; cursor: pointer;
+                transition: background 0.2s; border-bottom: 1px solid transparent;
         }
 
         .validation-header:hover { background: var(--hover-blue); }
         .validation-header.open { border-bottom: 1px solid var(--border-color); background: #fff; }
-
         .header-left { display: flex; align-items: center; gap: 15px; }
-
-        .header-title {
-                font-weight: bold;
-                color: var(--primary-blue);
-                font-size: 1.05rem;
-                text-transform: uppercase;
-        }
+        .header-title { font-weight: bold; color: var(--primary-blue); font-size: 1.05rem; text-transform: uppercase; }
 
         .score-badge {
-                padding: 4px 12px;
-                border-radius: 20px;
-                font-size: 0.9rem;
-                font-weight: bold;
-                color: white;
-                transition: all 0.3s;
+                padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;
+                color: white; transition: all 0.3s;
         }
         .score-badge.success { background-color: var(--success-green); }
         .score-badge.error { background-color: var(--error-red); }
 
-        /* Το βελάκι */
-        .chevron {
-                width: 24px; height: 24px; fill: var(--primary-blue);
-                transition: transform 0.3s ease;
-        }
+        .chevron { width: 24px; height: 24px; fill: var(--primary-blue); transition: transform 0.3s ease; }
         .chevron.rotate { transform: rotate(180deg); }
 
-        /* Το περιεχόμενο που ανοιγοκλείνει */
-        .validation-content {
-                display: none;
-                padding: 20px;
-                background: white;
-                animation: slideDown 0.3s ease-out;
-        }
+        .validation-content { display: none; padding: 20px; background: white; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 
-            @keyframes slideDown {
-                from { opacity: 0; transform: translateY(-10px); }
-                to { opacity: 1; transform: translateY(0); }
-            }
-
-        /* Διόρθωση στο Grid για να μην έχει διπλό border */
         .validation-grid { border-top: none; padding-top: 0; }
         
         .assignment-warning {
-            color: var(--error-red);
-            font-weight: bold;
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #ffebee;
-            border-left: 5px solid var(--error-red);
-            display: none;
+            color: var(--error-red); font-weight: bold; margin-bottom: 15px; padding: 10px;
+            background: #ffebee; border-left: 5px solid var(--error-red); display: none;
         }
 
         .validation-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 10px;
-            border-top: 1px solid #eee;
-            padding-top: 15px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 10px; border-top: 1px solid #eee; padding-top: 15px;
         }
 
         .validation-item {
-            padding: 8px 12px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-            display: flex;
-            justify-content: space-between;
-            background: #f5f5f5;
+            padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; display: flex;
+            justify-content: space-between; background: #f5f5f5;
         }
         .validation-item.error { background-color: #fff5f5; color: var(--error-red); border-left: 4px solid var(--error-red); }
         .validation-item.success { background-color: #f1f8f1; color: var(--success-green); border-left: 4px solid var(--success-green); }
 
-        /* Card Styles */
         .card {
-            width: 100%;
-            max-width: 1200px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            overflow: hidden; 
-            display: flex;
-            flex-direction: column;
-            margin-bottom: 30px; 
-            scroll-margin-top: 20px;
+            width: 100%; max-width: 1200px; background: white; border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden; display: flex;
+            flex-direction: column; margin-bottom: 30px; scroll-margin-top: 20px;
         }
 
-        .card-header {
-            background-color: var(--primary-blue);
-            color: white;
-            padding: 10px 15px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
+        .card-header { background-color: var(--primary-blue); color: white; padding: 10px 15px; font-weight: bold; text-transform: uppercase; }
         .table-scroll-area { overflow: auto; max-height: 75vh; width: 100%; }
         .table-full-view { width: 100%; overflow-x: auto; }
 
         table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 800px; }
-        th, td {
-            border-bottom: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            padding: 6px; 
-            text-align: center; 
-            font-size: 0.9rem; 
-        }
+        th, td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 6px; text-align: center; font-size: 0.9rem; }
 
         #schedule-table th { background: var(--primary-blue); color: white; position: sticky; top: 0; z-index: 20; }
         #schedule-table th:first-child { left: 0; z-index: 30; }
@@ -308,19 +200,23 @@
         .btn-add { background-color: #28a745; color: white; }
         .btn-remove { background-color: #dc3545; color: white; }
 
-        /* Footer */
+        .btn-not-taught {
+            background-color: #6c757d; color: white; border: none; padding: 6px 12px; 
+            border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; 
+            white-space: nowrap; height: fit-content; margin-top: 2px;
+        }
+        .btn-not-taught:hover { background-color: #5a6268; }
+        .not-taught-row td { opacity: 0.4; }
+        .not-taught-row td:first-child { text-decoration: line-through; font-style: italic; }
+        .assignment-actions-wrapper { display: flex; align-items: flex-start; gap: 10px; }
+
         .main-footer {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: white; border-top: 1px solid #ddd; padding: 10px;
-            display: flex; justify-content: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100;
+            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
+            border-top: 1px solid #ddd; padding: 10px; display: flex; justify-content: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100;
         }
 
-        .footer-inner {
-            width: 100%; max-width: 1200px;
-            display: flex; justify-content: space-between; align-items: center;
-            flex-wrap: wrap; gap: 15px;
-        }
-
+        .footer-inner { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .footer-status-area { display: flex; gap: 15px; align-items: center; }
         
         .status-box {
@@ -340,75 +236,31 @@
         .btn-footer {
             color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 50px; 
             cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 6px rgba(0,40,100,0.15); transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: all 0.2s;
         }
 
         .btn-footer:hover { transform: translateY(-2px); filter: brightness(1.15); }
         .export-btn { background-color: var(--primary-blue); }
+        .export-html-btn { background-color: var(--export-html-color); }
         .import-btn { background-color: #0277bd; }
         .reset-btn { background-color: #c62828; }
         .btn-footer svg { width: 18px; height: 18px; fill: currentColor; }
         
-        .save-indicator {
-            position: absolute; right: 20px; top: -40px; background: #333; color: #fff;
-            padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; opacity: 0; pointer-events: none;
-            transition: opacity 0.5s;
-        }
+        .save-indicator { position: absolute; right: 20px; top: -40px; background: #333; color: #fff; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
         
         @media screen and (max-width: 800px) {
             .footer-inner { justify-content: center; flex-direction: column; gap: 10px; }
             .controls-area { flex-direction: column; align-items: center; }
             .vertical-sep { width: 100%; height: 1px; margin: 10px 0; }
         }
-        /* --- CSS ΓΙΑ ΤΟ DISMISSIBLE INFO BOX --- */
-        .info-tip-box {
-            background-color: #e3f2fd; /* Απαλό μπλε Arsakeio */
-            color: var(--primary-blue);
-            padding: 10px 20px;
-            border-bottom: 1px solid #bbdefb;
-            display: none; /* Κρυφό αρχικά, το ανοίγει η JS αν δεν έχει κλείσει */
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.9rem;
-            animation: fadeIn 0.5s;
-        }
 
-        .tip-content {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .tip-close-btn {
-            background: none;
-            border: none;
-            font-size: 1.4rem;
-            color: #003366;
-            cursor: pointer;
-            padding: 0 5px;
-            line-height: 1;
-            opacity: 0.6;
-            transition: opacity 0.2s;
-        }
-
-        .tip-close-btn:hover {
-            opacity: 1;
-            color: var(--error-red);
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        .info-tip-box { background-color: #e3f2fd; color: var(--primary-blue); padding: 10px 20px; border-bottom: 1px solid #bbdefb; display: none; justify-content: space-between; align-items: center; font-size: 0.9rem; animation: fadeIn 0.5s; }
+        .tip-content { display: flex; align-items: center; gap: 10px; }
+        .tip-close-btn { background: none; border: none; font-size: 1.4rem; color: #003366; cursor: pointer; padding: 0 5px; line-height: 1; opacity: 0.6; transition: opacity 0.2s; }
+        .tip-close-btn:hover { opacity: 1; color: var(--error-red); }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     
-        /* --- FIX ΓΙΑ ΤΟ MULTI-SELECT --- */
-        /* Απενεργοποιεί το μπλε μαρκάρισμα (text selection) όταν γίνεται κλικ γύρω από τα selects */
-        td, th, .control-group, .teacher-input-group, .validation-header {
-            -webkit-user-select: none; /* Safari / Chrome */
-            -moz-user-select: none;    /* Firefox */
-            -ms-user-select: none;     /* IE / Edge */
-            user-select: none;         /* Standard */
-        }
+        td, th, .control-group, .teacher-input-group, .validation-header { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
     </style>
 </head>
 <body>
@@ -508,8 +360,7 @@
                         <th style="width: 60%;">Εκπαιδευτικός</th>
                     </tr>
                 </thead>
-                <tbody id="assignments-body">
-                    </tbody>
+                <tbody id="assignments-body"></tbody>
             </table>
         </div>
     </div>
@@ -522,11 +373,9 @@
                 <div id="status-hours" class="status-box warning" onclick="document.getElementById('card-schedule').scrollIntoView({behavior: 'smooth'})">
                     <span>ΩΡΕΣ: 0/40</span>
                 </div>
-                
                 <div id="status-subjects" class="status-box warning" onclick="document.getElementById('validation-report').scrollIntoView({behavior: 'smooth'})">
                     <span>ΜΑΘΗΜΑΤΑ: -</span>
                 </div>
-                
                 <div id="status-assign" class="status-box warning" onclick="document.getElementById('card-assignments').scrollIntoView({behavior: 'smooth'})">
                     <span>ΑΝΑΘΕΣΕΙΣ: 0/0</span>
                 </div>
@@ -544,10 +393,10 @@
                 </button>
                 <button class="btn-footer export-btn" onclick="exportToCSV()">
                     <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                    ΕΞΑΓΩΓΗ TXT
+                    ΕΞΑΓΩΓΗ CSV
                 </button>
-                <button class="btn-footer export-btn" onclick="exportToHTML()" style="background-color: #2e7d32;">
-                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+                <button class="btn-footer export-html-btn" onclick="exportToHTML()">
+                    <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
                     ΕΞΑΓΩΓΗ HTML
                 </button>
             </div>
@@ -559,77 +408,20 @@
         // DATA LOADER & CONFIG
         // ==========================================
         const RAW_DAYS = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ`;
-        const RAW_TIMES = `8:10-8:55
-9:00-9:45
-10:00-10:45
-10:50-11:35
-11:45-12:25
-12:30-13:10
-13:25-14:05
-14:10-14:50`;
-        const RAW_SUBJECTS = `ΑΓΓΛΙΚΑ
-ΑΓΩΓΗ ΥΓΕΙΑΣ
-Β' ΞΕΝΗ ΓΛΩΣΣΑ
-ΓΕΩΓΡΑΦΙΑ
-ΓΥΜΝΑΣΤΙΚΗ
-ΕΛΛΗΝΙΚΑ
-ΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ
-ΕΡΓ. ΔΕΞ.
-ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ
-ΘΡΗΣΚΕΥΤΙΚΑ
-ΙΣΤΟΡΙΑ
-ΚΑΛΛΙΤΕΧΝΙΚΑ
-ΚΠΑ
-ΜΑΘΗΜΑΤΙΚΑ
-ΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ
-ΜΟΥΣΙΚΗ
-ΜΣ/ΔΣ
-ΠΛΗΡΟΦΟΡΙΚΗ
-ΦΙΛΑΝΑΓΝΩΣΙΑ
-ΦΥΣΙΚΗ
-SHTEAM
-SOCIAL STUDIES`;
-        const RAW_HOURS_RULES = `Β' ΞΕΝΗ ΓΛΩΣΣΑ,0,0,2,2,3,3
-ΓΥΜΝΑΣΤΙΚΗ,4,4,3,3,3,3
-ΙΣΤΟΡΙΑ,0,0,2,2,2,2
-ΦΥΣΙΚΗ,0,0,0,0,3,3
-ΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ,3,3,2,2,0,0
-ΚΑΛΛΙΤΕΧΝΙΚΑ,2,2,2,2,1,1
-ΜΑΘΗΜΑΤΙΚΑ,5,5,5,5,5,5
-ΕΛΛΗΝΙΚΑ,10,10,8,8,7,7
-ΑΓΓΛΙΚΑ,4,4,5,5,5,5
-ΦΙΛΑΝΑΓΝΩΣΙΑ,1,1,1,1,1,1
-ΕΡΓ. ΔΕΞ.,3,3,2,2,2,2
-ΜΟΥΣΙΚΗ,2,2,2,2,1,1
-ΠΛΗΡΟΦΟΡΙΚΗ,1,1,1,1,1,1
-ΚΠΑ,0,0,0,0,1,1
-ΓΕΩΓΡΑΦΙΑ,0,0,0,0,1,1
-SOCIAL STUDIES,0,0,0,0,1,1
-ΑΓΩΓΗ ΥΓΕΙΑΣ,1,1,0,0,0,0
-ΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ,1,1,0,0,0,0
-ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,1,1,1,1,1,1
-ΘΡΗΣΚΕΥΤΙΚΑ,0,0,2,2,1,1
-ΜΣ/ΔΣ,1,1,1,1,1,1
-SHTEAM,1,1,1,1,0,0`;
-        const RAW_SCHOOL_MAPPINGS = `ΨΥΧΙΚΟ,1,2,3
-ΕΚΑΛΗ,1,2,3
-ΘΕΣΣΑΛΟΝΙΚΗ,1
-ΠΑΤΡΑ,1
-ΙΩΑΝΝΙΝΑ,1`;
+        const RAW_TIMES = `8:10-8:55\n9:00-9:45\n10:00-10:45\n10:50-11:35\n11:45-12:25\n12:30-13:10\n13:25-14:05\n14:10-14:50`;
+        const RAW_SUBJECTS = `ΑΓΓΛΙΚΑ\nΑΓΩΓΗ ΥΓΕΙΑΣ\nΒ' ΞΕΝΗ ΓΛΩΣΣΑ\nΓΕΩΓΡΑΦΙΑ\nΓΥΜΝΑΣΤΙΚΗ\nΕΛΛΗΝΙΚΑ\nΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ\nΕΡΓ. ΔΕΞ.\nΘΕΑΤΡΙΚΗ ΑΓΩΓΗ\nΘΡΗΣΚΕΥΤΙΚΑ\nΙΣΤΟΡΙΑ\nΚΑΛΛΙΤΕΧΝΙΚΑ\nΚΠΑ\nΜΑΘΗΜΑΤΙΚΑ\nΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ\nΜΟΥΣΙΚΗ\nΜΣ/ΔΣ\nΠΛΗΡΟΦΟΡΙΚΗ\nΦΙΛΑΝΑΓΝΩΣΙΑ\nΦΥΣΙΚΗ\nSHTEAM\nSOCIAL STUDIES`;
+        const RAW_HOURS_RULES = `Β' ΞΕΝΗ ΓΛΩΣΣΑ,0,0,2,2,3,3\nΓΥΜΝΑΣΤΙΚΗ,4,4,3,3,3,3\nΙΣΤΟΡΙΑ,0,0,2,2,2,2\nΦΥΣΙΚΗ,0,0,0,0,3,3\nΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ,3,3,2,2,0,0\nΚΑΛΛΙΤΕΧΝΙΚΑ,2,2,2,2,1,1\nΜΑΘΗΜΑΤΙΚΑ,5,5,5,5,5,5\nΕΛΛΗΝΙΚΑ,10,10,8,8,7,7\nΑΓΓΛΙΚΑ,4,4,5,5,5,5\nΦΙΛΑΝΑΓΝΩΣΙΑ,1,1,1,1,1,1\nΕΡΓ. ΔΕΞ.,3,3,2,2,2,2\nΜΟΥΣΙΚΗ,2,2,2,2,1,1\nΠΛΗΡΟΦΟΡΙΚΗ,1,1,1,1,1,1\nΚΠΑ,0,0,0,0,1,1\nΓΕΩΓΡΑΦΙΑ,0,0,0,0,1,1\nSOCIAL STUDIES,0,0,0,0,1,1\nΑΓΩΓΗ ΥΓΕΙΑΣ,1,1,0,0,0,0\nΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ,1,1,0,0,0,0\nΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,1,1,1,1,1,1\nΘΡΗΣΚΕΥΤΙΚΑ,0,0,2,2,1,1\nΜΣ/ΔΣ,1,1,1,1,1,1\nSHTEAM,1,1,1,1,0,0`;
+        const RAW_SCHOOL_MAPPINGS = `ΨΥΧΙΚΟ,1,2,3\nΕΚΑΛΗ,1,2,3\nΘΕΣΣΑΛΟΝΙΚΗ,1\nΠΑΤΡΑ,1\nΙΩΑΝΝΙΝΑ,1`;
 
         const PRIMARY_DATA_URL = "https://tethragon.github.io/webex-links/teachers_and_mappings.js";
-        const TEMPLATE_URL = "./webex-links_4all_v3.1_TEMPLATE.html";
-        
-        // =========================================================================
-        //  !!! FALLBACK URL - ΕΙΣΑΓΕΤΕ ΤΟ URL ΕΔΩ ΣΤΗΝ ΑΠΟ ΚΑΤΩ ΓΡΑΜΜΗ !!!
-        // =========================================================================
         const FALLBACK_DATA_URL = "https://tethragon.github.io/webex-links/teachers_and_mappings.js"; 
-        // =========================================================================
+        
+        const PRIMARY_TEMPLATE_URL = "https://tethragon.github.io/webex-links/webex-links_4all_v3.1_TEMPLATE.html"; 
+        const FALLBACK_TEMPLATE_URL = "https://tethragon.github.io/webex-links/webex-links_4all_v3.1_TEMPLATE.html"; 
 
         function loadScript(url) {
             return new Promise((resolve, reject) => {
                 const script = document.createElement('script');
-                // Cache busting using timestamp
                 script.src = url + "?t=" + new Date().getTime();
                 script.onload = () => resolve();
                 script.onerror = () => reject();
@@ -640,206 +432,113 @@ SHTEAM,1,1,1,1,0,0`;
         async function loadExternalData() {
             const overlay = document.getElementById('loading-overlay');
             const statusText = document.getElementById('loading-text');
-
             try {
                 statusText.innerText = "Φόρτωση δεδομένων (Πηγή 1)...";
                 await loadScript(PRIMARY_DATA_URL);
-                console.log("Data loaded from Primary Source");
                 overlay.style.display = 'none';
                 initApp();
             } catch (error) {
-                console.warn("Primary source failed, trying fallback...");
                 statusText.innerText = "Φόρτωση δεδομένων (Πηγή 2)...";
                 try {
                     await loadScript(FALLBACK_DATA_URL);
-                    console.log("Data loaded from Fallback Source");
                     overlay.style.display = 'none';
                     initApp();
                 } catch (fallbackError) {
-                    console.error("Critical: Both sources failed.");
                     statusText.style.color = "#d32f2f";
-                    statusText.innerText = "ΣΦΑΛΜΑ: Αδυναμία φόρτωσης δεδομένων εκπαιδευτικών. Ελέγξτε τη σύνδεσή σας και κάντε ανανέωση.";
-                    alert("ΣΦΑΛΜΑ ΣΥΣΤΗΜΑΤΟΣ: Δεν ήταν δυνατή η φόρτωσης των δεδομένων των εκπαιδευτικών από καμία πηγή. Παρακαλώ ελέγξτε τη σύνδεσή σας στο διαδίκτυο.");
+                    statusText.innerText = "ΣΦΑΛΜΑ: Αδυναμία φόρτωσης δεδομένων.";
+                    alert("ΣΦΑΛΜΑ ΣΥΣΤΗΜΑΤΟΣ:\n\nΔεν ήταν δυνατή η φόρτωση των δεδομένων.");
                 }
             }
         }
 
-        // ==========================================
-        // DEBUG DATA
-        // ==========================================
-        const DEBUG_DATA_CSV = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ
-8:10-8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ
-9:00-9:45,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΓΥΜΝΑΣΤΙΚΗ,ΕΛΛΗΝΙΚΑ
-10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΕΡΓ. ΔΕΞ.
-10:50-11:35,ΓΥΜΝΑΣΤΙΚΗ,ΓΥΜΝΑΣΤΙΚΗ,ΜΑΘΗΜΑΤΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΛΙΚΑ
-11:45-12:25,ΦΥΣΙΚΗ,ΙΣΤΟΡΙΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΦΥΣΙΚΗ
-12:30-13:10,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΚΠΑ,ΑΓΓΛΙΚΑ,ΜΣ/ΔΣ
-13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ
-14:10-14:50,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
-        const DEBUG_ASSIGNMENTS_CSV = `ΨΥΧΙΚΟ,2,ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ
-ΨΥΧΙΚΟ,2,ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ`;
+        const DEBUG_DATA_CSV = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ\n8:10-8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ\n9:00-9:45,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΓΥΜΝΑΣΤΙΚΗ,ΕΛΛΗΝΙΚΑ\n10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΕΡΓ. ΔΕΞ.\n10:50-11:35,ΓΥΜΝΑΣΤΙΚΗ,ΓΥΜΝΑΣΤΙΚΗ,ΜΑΘΗΜΑΤΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΛΙΚΑ\n11:45-12:25,ΦΥΣΙΚΗ,ΙΣΤΟΡΙΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΦΥΣΙΚΗ\n12:30-13:10,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΚΠΑ,ΑΓΓΛΙΚΑ,ΜΣ/ΔΣ\n13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ\n14:10-14:50,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
+        const DEBUG_ASSIGNMENTS_CSV = `ΨΥΧΙΚΟ,2,ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ\nΨΥΧΙΚΟ,2,ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ`;
 
         const TARGET_TOTAL_HOURS = 40;
         const MULTI_TEACHER_SUBJECTS = ["ΑΓΓΛΙΚΑ", "ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"];
+        const OPTIONAL_SUBJECTS = ["ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"]; 
 
-        // State & Maps
         let schoolStructure = {}; 
         let rulesMap = {}; 
         let assignmentsState = {}; 
-        
         let teachersBySchool = {}; 
         let specialtiesBySchool = {}; 
         let restrictedSubjects = new Set(); 
 
-        // --- PARSING HELPERS ---
-        function parseList(text) { 
-            if (!text) return [];
-            return text.trim().split('').map(s => s.trim()).filter(s => s !== ""); 
-        }
+        function parseList(text) { if (!text) return []; return text.trim().split('\n').map(s => s.trim()).filter(s => s !== ""); }
 
         function parseSchoolStructure() {
             const lines = parseList(RAW_SCHOOL_MAPPINGS);
             const regionSelect = document.getElementById('region-select');
-            
             lines.forEach(line => {
                 const parts = line.split(',');
                 if (parts.length >= 2) {
-                    const region = parts[0].trim();
-                    const schools = parts.slice(1).map(s => s.trim());
+                    const region = parts[0].trim(); const schools = parts.slice(1).map(s => s.trim());
                     schoolStructure[region] = schools;
-                    
-                    const opt = document.createElement('option');
-                    opt.value = region;
-                    opt.innerText = region;
-                    regionSelect.appendChild(opt);
+                    const opt = document.createElement('option'); opt.value = region; opt.innerText = region; regionSelect.appendChild(opt);
                 }
             });
         }
 
         function parseRules() {
             const lines = parseList(RAW_HOURS_RULES);
-            lines.forEach(line => {
-                const parts = line.split(',');
-                const subject = parts[0].trim();
-                const hours = parts.slice(1).map(Number);
-                if (hours.length === 6) rulesMap[subject] = hours;
-            });
+            lines.forEach(line => { const parts = line.split(','); const subject = parts[0].trim(); const hours = parts.slice(1).map(Number); if (hours.length === 6) rulesMap[subject] = hours; });
         }
 
         function parseTeachers() {
-            // NOTE: RAW_TEACHERS now comes from window object (external file)
             const lines = parseList(window.RAW_TEACHERS);
             lines.forEach(line => {
                 const parts = line.split(',');
                 if (parts.length >= 3) {
-                    const region = parts[0].trim();
-                    const school = parts[1].trim();
-                    const name = parts[2].trim();
+                    const region = parts[0].trim(); const school = parts[1].trim(); const name = parts[2].trim();
                     const key = `${region}|${school}`;
-                    
                     if (!teachersBySchool[key]) teachersBySchool[key] = [];
                     teachersBySchool[key].push(name);
                 }
             });
-            for (const key in teachersBySchool) {
-                teachersBySchool[key].sort((a, b) => a.localeCompare(b, 'el'));
-            }
+            for (const key in teachersBySchool) { teachersBySchool[key].sort((a, b) => a.localeCompare(b, 'el')); }
         }
 
         function parseTeacherMappings() {
-            // NOTE: RAW_TEACHER_MAPPINGS now comes from window object (external file)
             const lines = parseList(window.RAW_TEACHER_MAPPINGS);
             lines.forEach(line => {
                 const parts = line.split(',');
                 if (parts.length >= 4) {
-                    const region = parts[0].trim();
-                    const school = parts[1].trim();
-                    const teacher = parts[2].trim();
-                    const subject = parts[3].trim();
+                    const region = parts[0].trim(); const school = parts[1].trim(); const teacher = parts[2].trim(); const subject = parts[3].trim();
                     const key = `${region}|${school}`;
-
                     if (!specialtiesBySchool[key]) specialtiesBySchool[key] = {};
                     if (!specialtiesBySchool[key][teacher]) specialtiesBySchool[key][teacher] = new Set();
-                    
-                    specialtiesBySchool[key][teacher].add(subject);
-                    restrictedSubjects.add(subject); 
+                    specialtiesBySchool[key][teacher].add(subject); restrictedSubjects.add(subject); 
                 }
             });
         }
 
-        // ==========================================
-        // INITIALIZATION
-        // ==========================================
         function initApp() {
-            parseSchoolStructure();
-            parseRules();
-            parseTeachers();
-            parseTeacherMappings();
-
+            parseSchoolStructure(); parseRules(); parseTeachers(); parseTeacherMappings();
             const subjects = parseList(RAW_SUBJECTS);
             const days = RAW_DAYS.split(',').map(s => s.trim());
             const times = parseList(RAW_TIMES);
-
             const headerRow = document.getElementById('header-row');
-            days.forEach(day => {
-                const th = document.createElement('th');
-                th.innerText = day;
-                headerRow.appendChild(th);
-            });
-
+            days.forEach(day => { const th = document.createElement('th'); th.innerText = day; headerRow.appendChild(th); });
             const tbody = document.getElementById('table-body');
             times.forEach(timeLabel => {
-                const tr = document.createElement('tr');
-                const tdTime = document.createElement('td');
-                tdTime.innerText = timeLabel;
-                tr.appendChild(tdTime);
-
+                const tr = document.createElement('tr'); const tdTime = document.createElement('td'); tdTime.innerText = timeLabel; tr.appendChild(tdTime);
                 for (let i = 1; i < days.length; i++) {
-                    const td = document.createElement('td');
-                    const select = createDropdown(subjects, "subject-select");
-                    
+                    const td = document.createElement('td'); const select = createDropdown(subjects, "subject-select");
                     select.onchange = function(e) {
                         if (this.classList.contains('multi-selected')) {
                             const newVal = this.value;
-                            const allSelected = document.querySelectorAll('.subject-select.multi-selected');
-                            allSelected.forEach(sel => {
-                                sel.value = newVal;
-                                sel.classList.remove('multi-selected'); 
-                            });
+                            document.querySelectorAll('.subject-select.multi-selected').forEach(sel => { sel.value = newVal; sel.classList.remove('multi-selected'); });
                         }
                         handleMainChange();
                     }; 
-                    
-                    td.appendChild(select);
-                    tr.appendChild(td);
+                    td.appendChild(select); tr.appendChild(td);
                 }
                 tbody.appendChild(tr);
             });
-
-            loadFromLocal();
-            checkTipStatus();
+            loadFromLocal(); checkTipStatus();
         }
 
-        // ==========================================
-        // REGION & SCHOOL HANDLING
-        // ==========================================
         function hasData() {
             if (Object.keys(assignmentsState).length > 0) return true;
             const selects = document.querySelectorAll('#table-body select');
@@ -848,210 +547,96 @@ SHTEAM,1,1,1,1,0,0`;
         }
 
         function handleRegionChange(selectElement) {
-            // Check for existing data and warn
-            if (hasData()) {
-                if (!confirm("ΠΡΟΣΟΧΗ: Η αλλαγή περιοχής θα διαγράψει όλα τα τρέχοντα δεδομένα.\n\nΘέλετε να συνεχίσετε;")) {
-                    selectElement.value = selectElement.getAttribute('data-prev');
-                    return;
-                }
-            }
+            if (hasData()) { if (!confirm("ΠΡΟΣΟΧΗ: Η αλλαγή περιοχής θα διαγράψει όλα τα τρέχοντα δεδομένα.\n\nΘέλετε να συνεχίσετε;")) { selectElement.value = selectElement.getAttribute('data-prev'); return; } }
             selectElement.setAttribute('data-prev', selectElement.value);
-
-            const region = selectElement.value;
-            const schoolSelect = document.getElementById('school-select');
-            
-            schoolSelect.innerHTML = '<option value="" disabled selected>Σχολείο</option>';
-            schoolSelect.disabled = true;
-            
+            const region = selectElement.value; const schoolSelect = document.getElementById('school-select');
+            schoolSelect.innerHTML = '<option value="" disabled selected>Σχολείο</option>'; schoolSelect.disabled = true;
             if (region && schoolStructure[region]) {
-                schoolStructure[region].forEach(s => {
-                    const opt = document.createElement('option');
-                    opt.value = s;
-                    opt.innerText = s;
-                    schoolSelect.appendChild(opt);
-                });
+                schoolStructure[region].forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.innerText = s; schoolSelect.appendChild(opt); });
                 schoolSelect.disabled = false;
             }
-            
             resetDataOnLocationChange();
         }
 
         function handleSchoolChange(selectElement) {
-             // Check for existing data and warn
-             if (hasData()) {
-                if (!confirm("ΠΡΟΣΟΧΗ: Η αλλαγή σχολείου θα διαγράψει όλα τα τρέχοντα δεδομένα.\n\nΘέλετε να συνεχίσετε;")) {
-                    selectElement.value = selectElement.getAttribute('data-prev');
-                    return;
-                }
-            }
+             if (hasData()) { if (!confirm("ΠΡΟΣΟΧΗ: Η αλλαγή σχολείου θα διαγράψει όλα τα τρέχοντα δεδομένα.\n\nΘέλετε να συνεχίσετε;")) { selectElement.value = selectElement.getAttribute('data-prev'); return; } }
             selectElement.setAttribute('data-prev', selectElement.value);
-
-            resetDataOnLocationChange(true); // Reset data but keep location
-            
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
-            const key = `${region}|${school}`;
-            const teachers = teachersBySchool[key];
-            const msgBox = document.getElementById('no-teachers-msg');
-
-            if (!teachers || teachers.length === 0) {
-                msgBox.style.display = 'block';
-            } else {
-                msgBox.style.display = 'none';
-            }
+            resetDataOnLocationChange(true); 
+            const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
+            const key = `${region}|${school}`; const teachers = teachersBySchool[key]; const msgBox = document.getElementById('no-teachers-msg');
+            if (!teachers || teachers.length === 0) { msgBox.style.display = 'block'; } else { msgBox.style.display = 'none'; }
             saveToLocal();
         }
 
         function resetDataOnLocationChange(keepLocation = false) {
-            document.getElementById('grade-select').value = "";
-            document.getElementById('section-select').value = "";
-            document.querySelectorAll('#table-body select').forEach(s => s.value = "");
-            assignmentsState = {};
-            
-            handleMainChange();
-            if (!keepLocation) saveToLocal(); 
+            document.getElementById('grade-select').value = ""; document.getElementById('section-select').value = "";
+            document.querySelectorAll('#table-body select').forEach(s => s.value = ""); assignmentsState = {};
+            handleMainChange(); if (!keepLocation) saveToLocal(); 
         }
 
         function checkSelectionLocked() {
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
-            const grade = document.getElementById('grade-select').value;
-            const section = document.getElementById('section-select').value;
-            
+            const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
+            const grade = document.getElementById('grade-select').value; const section = document.getElementById('section-select').value;
             const key = `${region}|${school}`;
-            if (region && school && (!teachersBySchool[key] || teachersBySchool[key].length === 0)) {
-                return true; // Permanently locked if no teachers
-            }
-
+            if (region && school && (!teachersBySchool[key] || teachersBySchool[key].length === 0)) return true;
             if (!region || !school || !grade || !section) {
                 alert("⚠️ ΠΡΟΣΟΧΗ: Παρακαλώ επιλέξτε Περιοχή, Σχολείο, Τάξη και Τμήμα για να ξεκινήσετε!");
-                
-                // Visual Highlight
-                const controls = document.querySelector('.controls-area');
-                controls.scrollIntoView({behavior: 'smooth', block: 'center'});
-                controls.style.borderColor = "var(--error-red)";
-                setTimeout(() => controls.style.borderColor = "var(--primary-blue)", 2000);
-                
+                const controls = document.querySelector('.controls-area'); controls.scrollIntoView({behavior: 'smooth', block: 'center'});
+                controls.style.borderColor = "var(--error-red)"; setTimeout(() => controls.style.borderColor = "var(--primary-blue)", 2000);
                 return true;
             }
             return false;
         }
 
-        // ==========================================
-        // UI & LOGIC HELPERS
-        // ==========================================
-
         function createDropdown(optionsList, className) {
-            const select = document.createElement('select');
-            select.className = className;
-            const def = document.createElement('option');
-            def.value = ""; def.text = "-"; def.style.color="#999";
-            select.appendChild(def);
-            optionsList.forEach(opt => {
-                const o = document.createElement('option');
-                o.value = opt; o.text = opt;
-                select.appendChild(o);
-            });
-
+            const select = document.createElement('select'); select.className = className;
+            const def = document.createElement('option'); def.value = ""; def.text = "-"; def.style.color="#999"; select.appendChild(def);
+            optionsList.forEach(opt => { const o = document.createElement('option'); o.value = opt; o.text = opt; select.appendChild(o); });
             if (className === 'subject-select' || className === 'teacher-select') {
                 select.addEventListener('mousedown', function(e) {
-                    if (className === 'subject-select' && checkSelectionLocked()) {
-                        e.preventDefault();
-                        this.blur();
-                        return;
-                    }
-                    if (e.ctrlKey || e.metaKey) {
-                        e.preventDefault(); 
-                        this.classList.toggle('multi-selected'); 
-                        setTimeout(() => this.blur(), 0); 
-                    }
+                    if (className === 'subject-select' && checkSelectionLocked()) { e.preventDefault(); this.blur(); return; }
+                    if (e.ctrlKey || e.metaKey) { e.preventDefault(); this.classList.toggle('multi-selected'); setTimeout(() => this.blur(), 0); }
                 });
             }
-
             return select;
         }
 
-        function handleMainChange() {
-            validateSchedule();
-            updateAssignmentsTable();
-            validateAssignments();
-            saveToLocal();
-        }
+        function handleMainChange() { validateSchedule(); updateAssignmentsTable(); validateAssignments(); saveToLocal(); }
 
         function handleTeacherChange(changedSelect) {
-            const newValue = changedSelect.value;
-            let targets = [changedSelect];
-            if (changedSelect.classList.contains('multi-selected')) {
-                targets = document.querySelectorAll('.teacher-select.multi-selected');
-            }
-
+            const newValue = changedSelect.value; let targets = [changedSelect];
+            if (changedSelect.classList.contains('multi-selected')) { targets = document.querySelectorAll('.teacher-select.multi-selected'); }
             targets.forEach(sel => {
-                sel.value = newValue;
-                sel.classList.remove('multi-selected');
-                
-                const subj = sel.getAttribute('data-subject');
-                const container = sel.closest('.teacher-row-container');
-                
-                if (container) {
-                    saveMultiTeacherState(subj, container);
-                } else {
-                    assignmentsState[subj] = sel.value;
-                }
-                
+                sel.value = newValue; sel.classList.remove('multi-selected');
+                const subj = sel.getAttribute('data-subject'); const container = sel.closest('.teacher-row-container');
+                if (container) { saveMultiTeacherState(subj, container); } else { assignmentsState[subj] = sel.value; }
                 checkTeacherSpecialty(sel, subj, sel.value);
             });
-
-            validateAssignments();
-            saveToLocal();
+            validateAssignments(); saveToLocal();
         }
 
-        // ==========================================
-        // KEYBOARD & NAVIGATION
-        // ==========================================
         document.addEventListener('keydown', (e) => {
-            if (e.key === '*') {
-                e.preventDefault();
-                if (confirm("⚠️ ΠΡΟΣΟΧΗ: Ενεργοποίηση Debug Mode.\n\nΘέλετε να συνεχίσετε;")) {
-                    fillDebug();
-                }
-                return;
-            }
-
+            if (e.key === '*') { e.preventDefault(); if (confirm("⚠️ ΠΡΟΣΟΧΗ: Ενεργοποίηση Debug Mode.\n\nΘέλετε να συνεχίσετε;")) { fillDebug(); } return; }
             if (e.target.tagName === 'SELECT') {
                 if (e.target.classList.contains('subject-select') && ['Enter', ' ', 'ArrowDown', 'ArrowUp'].includes(e.key)) {
-                    if (['Enter', ' '].includes(e.key)) {
-                        if (checkSelectionLocked()) {
-                            e.preventDefault();
-                            return;
-                        }
-                    }
+                    if (['Enter', ' '].includes(e.key)) { if (checkSelectionLocked()) { e.preventDefault(); return; } }
                 }
-                if (e.key === 'Enter') {
-                    e.preventDefault(); 
-                    try { if (e.target.showPicker) e.target.showPicker(); } catch (err) { console.log(err); }
-                    return;
-                }
+                if (e.key === 'Enter') { e.preventDefault(); try { if (e.target.showPicker) e.target.showPicker(); } catch (err) { } return; }
                 if (e.key === 'Delete' || e.key === 'Backspace') {
                     e.preventDefault();
                     if (e.target.classList.contains('subject-select') && checkSelectionLocked()) return; 
-                    if (e.target.value !== "") {
-                        e.target.value = "";
-                        e.target.dispatchEvent(new Event('change'));
-                    }
+                    if (e.target.value !== "") { e.target.value = ""; e.target.dispatchEvent(new Event('change')); }
                     return;
                 }
                 if (['PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) {
-                    e.preventDefault(); e.target.blur();    
-                    const scrollAmount = window.innerHeight * 0.8;
+                    e.preventDefault(); e.target.blur();    const scrollAmount = window.innerHeight * 0.8;
                     if (e.key === 'PageUp') window.scrollBy(0, -scrollAmount);
                     if (e.key === 'PageDown') window.scrollBy(0, scrollAmount);
                     if (e.key === 'Home') window.scrollTo(0, 0);
                     if (e.key === 'End') window.scrollTo(0, document.body.scrollHeight);
                     return;
                 }
-                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-                    e.preventDefault(); navigateGrid(e.target, e.key);
-                }
+                if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) { e.preventDefault(); navigateGrid(e.target, e.key); }
             }
         });
 
@@ -1062,317 +647,201 @@ SHTEAM,1,1,1,1,0,0`;
         });
 
         function navigateGrid(currentSelect, key) {
-            const parentTable = currentSelect.closest('table');
-            if (!parentTable) return;
-            if (parentTable.id === 'schedule-table') {
-                const cell = currentSelect.closest('td');
-                handleScheduleNav(cell.parentElement, cell, key);
-            } else if (parentTable.id === 'assignments-table') {
-                handleLinearNav(currentSelect, key);
-            }
+            const parentTable = currentSelect.closest('table'); if (!parentTable) return;
+            if (parentTable.id === 'schedule-table') { const cell = currentSelect.closest('td'); handleScheduleNav(cell.parentElement, cell, key); } 
+            else if (parentTable.id === 'assignments-table') { handleLinearNav(currentSelect, key); }
         }
 
         function handleScheduleNav(row, cell, key) {
-            const rows = Array.from(document.querySelectorAll('#table-body tr'));
-            const currentRowIdx = rows.indexOf(row);
-            const cells = Array.from(row.children);
-            const currentColIdx = cells.indexOf(cell);
-            let nextSelect = null;
-
+            const rows = Array.from(document.querySelectorAll('#table-body tr')); const currentRowIdx = rows.indexOf(row);
+            const cells = Array.from(row.children); const currentColIdx = cells.indexOf(cell); let nextSelect = null;
             if (key === 'ArrowRight') { if (currentColIdx < cells.length - 1) nextSelect = cells[currentColIdx + 1].querySelector('select'); }
             else if (key === 'ArrowLeft') { if (currentColIdx > 1) nextSelect = cells[currentColIdx - 1].querySelector('select'); }
             else if (key === 'ArrowDown') { if (currentRowIdx < rows.length - 1) nextSelect = rows[currentRowIdx + 1].children[currentColIdx].querySelector('select'); }
             else if (key === 'ArrowUp') { if (currentRowIdx > 0) nextSelect = rows[currentRowIdx - 1].children[currentColIdx].querySelector('select'); }
-
             if (nextSelect && !nextSelect.disabled) nextSelect.focus();
         }
 
         function handleLinearNav(currentSelect, key) {
-            const allSelects = Array.from(document.querySelectorAll('#assignments-body select'));
-            const idx = allSelects.indexOf(currentSelect);
+            const allSelects = Array.from(document.querySelectorAll('#assignments-body select')); const idx = allSelects.indexOf(currentSelect);
             if ((key === 'ArrowDown' || key === 'ArrowRight') && idx < allSelects.length - 1) allSelects[idx + 1].focus();
             else if ((key === 'ArrowUp' || key === 'ArrowLeft') && idx > 0) allSelects[idx - 1].focus();
         }
         
-        // ==========================================
-        // STORAGE
-        // ==========================================
         function saveToLocal() {
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
-            const grade = document.getElementById('grade-select').value;
-            const section = document.getElementById('section-select').value;
-            
-            const scheduleData = [];
-            const rows = document.getElementById('table-body').querySelectorAll('tr');
-            rows.forEach(r => {
-                const rowVals = [];
-                r.querySelectorAll('select').forEach(s => rowVals.push(s.value));
-                scheduleData.push(rowVals);
-            });
-            
+            const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
+            const grade = document.getElementById('grade-select').value; const section = document.getElementById('section-select').value;
+            const scheduleData = []; const rows = document.getElementById('table-body').querySelectorAll('tr');
+            rows.forEach(r => { const rowVals = []; r.querySelectorAll('select').forEach(s => rowVals.push(s.value)); scheduleData.push(rowVals); });
             const dataToSave = { region, school, grade, section, schedule: scheduleData, assignments: assignmentsState };
             localStorage.setItem('arsakeiaSchedulerV1', JSON.stringify(dataToSave));
-            
-            const msg = document.getElementById('save-msg');
-            msg.style.opacity = '1';
-            setTimeout(() => { msg.style.opacity = '0'; }, 1000);
+            const msg = document.getElementById('save-msg'); msg.style.opacity = '1'; setTimeout(() => { msg.style.opacity = '0'; }, 1000);
         }
 
         function loadFromLocal() {
-            const savedData = localStorage.getItem('arsakeiaSchedulerV1');
-            if (!savedData) return;
+            const savedData = localStorage.getItem('arsakeiaSchedulerV1'); if (!savedData) return;
             try {
                 const data = JSON.parse(savedData);
-                
-                // Restore Location
                 if (data.region) {
-                    const regionEl = document.getElementById('region-select');
-                    regionEl.value = data.region;
-                    // Trigger manually to populate schools
-                    handleRegionChange(regionEl); 
-                    
-                    if (data.school) {
-                        const schoolEl = document.getElementById('school-select');
-                        schoolEl.value = data.school;
-                        handleSchoolChange(schoolEl); 
-                    }
+                    const regionEl = document.getElementById('region-select'); regionEl.value = data.region; handleRegionChange(regionEl); 
+                    if (data.school) { const schoolEl = document.getElementById('school-select'); schoolEl.value = data.school; handleSchoolChange(schoolEl); }
                 }
-
                 if (data.grade) document.getElementById('grade-select').value = data.grade;
                 if (data.section) document.getElementById('section-select').value = data.section;
-                
                 if (data.schedule && Array.isArray(data.schedule)) {
                     const rows = document.getElementById('table-body').querySelectorAll('tr');
                     data.schedule.forEach((rowVals, rIndex) => {
-                        if (rIndex < rows.length) {
-                            const selects = rows[rIndex].querySelectorAll('select');
-                            rowVals.forEach((val, sIndex) => {
-                                if (sIndex < selects.length) selects[sIndex].value = val;
-                            });
-                        }
+                        if (rIndex < rows.length) { const selects = rows[rIndex].querySelectorAll('select'); rowVals.forEach((val, sIndex) => { if (sIndex < selects.length) selects[sIndex].value = val; }); }
                     });
                 }
-                
                 if (data.assignments) assignmentsState = data.assignments;
-                
                 handleMainChange();
-            } catch (e) { console.error("Error loading data", e); }
+            } catch (e) { }
         }
 
         function clearAllData() {
             if (confirm("ΠΡΟΣΟΧΗ: Είστε σίγουροι ότι θέλετε να διαγράψετε όλα τα δεδομένα;")) {
-        // 1. Διαγραφή από την τοπική μνήμη (LocalStorage)
-                localStorage.removeItem('arsakeiaSchedulerV1');
-
-        // 2. Μηδενισμός των βασικών πεδίων επιλογής
-                document.getElementById('region-select').value = "";
-
-        // Για το σχολείο, πρέπει να αδειάσουμε τις επιλογές και να το απενεργοποιήσουμε
-                const schoolSelect = document.getElementById('school-select');
-                schoolSelect.innerHTML = '<option value="" disabled selected>Σχολείο</option>';
-                schoolSelect.disabled = true;
-
-                document.getElementById('grade-select').value = "";
-                document.getElementById('section-select').value = "";
-
-        // 3. Καθαρισμός όλων των επιλογών μέσα στον πίνακα προγράμματος
-                document.querySelectorAll('#table-body select').forEach(s => s.value = "");
-
-        // 4. Μηδενισμός της εσωτερικής κατάστασης αναθέσεων
-                assignmentsState = {};
-
-        // 5. Ενημέρωση της εφαρμογής (κρύβει πίνακες ελέγχου, μηδενίζει μετρητές)
-                handleMainChange();
-
-        // 6. Κύλιση στην κορυφή της σελίδας για καθαρή αρχή
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                localStorage.removeItem('arsakeiaSchedulerV1'); document.getElementById('region-select').value = "";
+                const schoolSelect = document.getElementById('school-select'); schoolSelect.innerHTML = '<option value="" disabled selected>Σχολείο</option>'; schoolSelect.disabled = true;
+                document.getElementById('grade-select').value = ""; document.getElementById('section-select').value = "";
+                document.querySelectorAll('#table-body select').forEach(s => s.value = ""); assignmentsState = {};
+                handleMainChange(); window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         }
-
-        // ==========================================
-        // VALIDATION & LOGIC
-        // ==========================================
-        // --- ΝΕΑ ΣΥΝΑΡΤΗΣΗ ΓΙΑ ΤΟ ΑΝΟΙΓΜΑ/ΚΛΕΙΣΙΜΟ ---
         
         function toggleValidation() {
-            const content = document.getElementById('validation-content');
-            const header = document.querySelector('.validation-header');
-            const arrow = document.getElementById('validation-arrow');
+            const content = document.getElementById('validation-content'); const header = document.querySelector('.validation-header'); const arrow = document.getElementById('validation-arrow');
+            if (content.style.display === 'block') { content.style.display = 'none'; header.classList.remove('open'); arrow.classList.remove('rotate'); } 
+            else { content.style.display = 'block'; header.classList.add('open'); arrow.classList.add('rotate'); }
+        }
 
-            if (content.style.display === 'block') {
-                content.style.display = 'none';
-                header.classList.remove('open');
-                arrow.classList.remove('rotate');
+        function checkTipStatus() {
+            const isHidden = localStorage.getItem('hideMultiSelectTip'); const tipBox = document.getElementById('multi-select-tip');
+            if (!isHidden && tipBox) { tipBox.style.display = 'flex'; } else if (tipBox) { tipBox.style.display = 'none'; }
+        }
+
+        function dismissTip() { const tipBox = document.getElementById('multi-select-tip'); if (tipBox) { tipBox.style.display = 'none'; localStorage.setItem('hideMultiSelectTip', 'true'); } }
+
+        function validateSchedule() {
+            const grade = document.getElementById('grade-select').value; const footerHours = document.getElementById('status-hours');
+            const footerSubj = document.getElementById('status-subjects'); const reportDiv = document.getElementById('validation-report');
+            const gridDiv = document.getElementById('validation-grid'); const scoreBadge = document.getElementById('validation-score-badge');
+            if (!grade) { 
+                reportDiv.style.display = 'none'; footerHours.innerHTML = `<span>ΩΡΕΣ: 0/${TARGET_TOTAL_HOURS}</span>`; footerHours.className = 'status-box warning';
+                footerSubj.innerHTML = `<span>ΜΑΘΗΜΑΤΑ: -</span>`; footerSubj.className = 'status-box warning'; return; 
+            }
+            reportDiv.style.display = 'block'; gridDiv.innerHTML = '';
+            const gradeMap = { 'Α':0, 'Β':1, 'Γ':2, 'Δ':3, 'Ε':4, 'ΣΤ':5 }; const idx = gradeMap[grade];
+            const selects = document.querySelectorAll('.subject-select'); const counts = {}; let totalHours = 0;
+            selects.forEach(sel => { if(sel.value) { counts[sel.value] = (counts[sel.value]||0)+1; totalHours++; } });
+            footerHours.innerHTML = `<span>ΩΡΕΣ: ${totalHours}/${TARGET_TOTAL_HOURS}</span>`;
+            footerHours.className = (totalHours === TARGET_TOTAL_HOURS) ? 'status-box success' : 'status-box warning';
+            let correctRules = 0;   let totalRules = 0;     
+            for (const [subj, hoursArr] of Object.entries(rulesMap)) {
+                const req = hoursArr[idx]; const act = counts[subj] || 0;
+                if (req === 0 && act === 0) continue; totalRules++; 
+                const el = document.createElement('div'); el.className = 'validation-item';
+                if (act === req) { correctRules++; el.classList.add('success'); el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (OK)</span>`; } 
+                else { el.classList.add('error'); el.innerHTML = `<span>${subj}</span> <span>${act} / ${req} (ΛΑΘΟΣ)</span>`; }
+                gridDiv.appendChild(el);
+            }
+            scoreBadge.innerText = `${correctRules} / ${totalRules}`;
+            if (totalRules > 0 && correctRules === totalRules) {
+                scoreBadge.className = "score-badge success"; footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: OK</span>'; footerSubj.className = 'status-box success';
             } else {
-                content.style.display = 'block';
-                header.classList.add('open');
-                arrow.classList.add('rotate');
+                scoreBadge.className = "score-badge error"; footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: ΛΑΘΟΣ</span>'; footerSubj.className = 'status-box error';
             }
         }
-
-        // --- LOGIC ΓΙΑ ΤΟ INFO TIP ---
-        function checkTipStatus() {
-    // Ελέγχουμε αν ο χρήστης το έχει κλείσει στο παρελθόν
-            const isHidden = localStorage.getItem('hideMultiSelectTip');
-            const tipBox = document.getElementById('multi-select-tip');
-
-            if (!isHidden && tipBox) {
-        tipBox.style.display = 'flex'; // Εμφάνιση αν δεν έχει αποθηκευτεί το 'hide'
-    } else if (tipBox) {
-        tipBox.style.display = 'none';
-    }
-}
-
-function dismissTip() {
-    const tipBox = document.getElementById('multi-select-tip');
-    if (tipBox) {
-        tipBox.style.display = 'none';
-        // Αποθήκευση της επιλογής για πάντα
-        localStorage.setItem('hideMultiSelectTip', 'true');
-    }
-}
-
-
-// --- ΤΡΟΠΟΠΟΙΗΜΕΝΗ ΣΥΝΑΡΤΗΣΗ VALIDATION (ME SCORE X/Y) ---
-        function validateSchedule() {
-    const grade = document.getElementById('grade-select').value;
-    const footerHours = document.getElementById('status-hours');
-    const footerSubj = document.getElementById('status-subjects'); 
-    
-    // Στοιχεία UI
-    const reportDiv = document.getElementById('validation-report');
-    const gridDiv = document.getElementById('validation-grid');
-    const scoreBadge = document.getElementById('validation-score-badge');
-
-    if (!grade) { 
-        reportDiv.style.display = 'none'; 
-        footerHours.innerHTML = `<span>ΩΡΕΣ: 0/\${TARGET_TOTAL_HOURS}</span>`;
-        footerHours.className = 'status-box warning';
-        footerSubj.innerHTML = `<span>ΜΑΘΗΜΑΤΑ: -</span>`;
-        footerSubj.className = 'status-box warning';
-        return; 
-    }
-
-    reportDiv.style.display = 'block';
-    gridDiv.innerHTML = '';
-    
-    const gradeMap = { 'Α':0, 'Β':1, 'Γ':2, 'Δ':3, 'Ε':4, 'ΣΤ':5 };
-    const idx = gradeMap[grade];
-    const selects = document.querySelectorAll('.subject-select');
-    const counts = {};
-    let totalHours = 0;
-
-    // Καταμέτρηση ωρών που έχουν τοποθετηθεί στο πρόγραμμα
-    selects.forEach(sel => {
-        if(sel.value) { counts[sel.value] = (counts[sel.value]||0)+1; totalHours++; }
-    });
-
-    footerHours.innerHTML = `<span>ΩΡΕΣ: \${totalHours}/\${TARGET_TOTAL_HOURS}</span>`;
-    footerHours.className = (totalHours === TARGET_TOTAL_HOURS) ? 'status-box success' : 'status-box warning';
-
-    // --- ΥΠΟΛΟΓΙΣΜΟΣ ΣΚΟΡ (ΧΩΡΙΣ ΤΑ 0/0) ---
-    let correctRules = 0;   
-    let totalRules = 0;     
-
-    for (const [subj, hoursArr] of Object.entries(rulesMap)) {
-        const req = hoursArr[idx];
-        const act = counts[subj] || 0;
-
-        // --- ΒΑΣΙΚΗ ΑΛΛΑΓΗ ---
-        // Αν το μάθημα δεν προβλέπεται (0 ώρες) ΚΑΙ δεν έχει δηλωθεί (0 ώρες),
-        // το προσπερνάμε τελείως. Δεν μετράει στο σκορ, ούτε εμφανίζεται.
-        if (req === 0 && act === 0) continue;
-
-        // Αν φτάσαμε εδώ, σημαίνει ότι είτε το μάθημα χρειάζεται ώρες (req > 0),
-        // είτε έγινε λάθος και μπήκαν ώρες ενώ δεν έπρεπε (req=0, act>0).
-        totalRules++; 
-        
-        const el = document.createElement('div');
-        el.className = 'validation-item';
-        
-        if (act === req) {
-            correctRules++; 
-            el.classList.add('success'); 
-            el.innerHTML = `<span>\${subj}</span> <span>\${act} / \${req} (OK)</span>`;
-        } else {
-            el.classList.add('error'); 
-            el.innerHTML = `<span>\${subj}</span> <span>\${act} / \${req} (ΛΑΘΟΣ)</span>`;
-        }
-        gridDiv.appendChild(el);
-    }
-
-    // --- ΕΝΗΜΕΡΩΣΗ ΤΗΣ ΜΠΑΡΑ ---
-    scoreBadge.innerText = `\${correctRules} / \${totalRules}`;
-
-    if (totalRules > 0 && correctRules === totalRules) {
-        scoreBadge.className = "score-badge success";
-        footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: OK</span>';
-        footerSubj.className = 'status-box success';
-    } else {
-        scoreBadge.className = "score-badge error";
-        footerSubj.innerHTML = '<span>ΜΑΘΗΜΑΤΑ: ΛΑΘΟΣ</span>';
-        footerSubj.className = 'status-box error';
-    }
-}
 
         function updateAssignmentsTable() {
             const tableBody = document.getElementById('assignments-body');
             const subjectsInSchedule = new Set();
             document.querySelectorAll('.subject-select').forEach(sel => { if (sel.value) subjectsInSchedule.add(sel.value); });
-            if (subjectsInSchedule.has("Β' ΞΕΝΗ ΓΛΩΣΣΑ")) {
-                subjectsInSchedule.delete("Β' ΞΕΝΗ ΓΛΩΣΣΑ"); subjectsInSchedule.add("ΓΑΛΛΙΚΑ"); subjectsInSchedule.add("ΓΕΡΜΑΝΙΚΑ");
-            }
-            
+            if (subjectsInSchedule.has("Β' ΞΕΝΗ ΓΛΩΣΣΑ")) { subjectsInSchedule.delete("Β' ΞΕΝΗ ΓΛΩΣΣΑ"); subjectsInSchedule.add("ΓΑΛΛΙΚΑ"); subjectsInSchedule.add("ΓΕΡΜΑΝΙΚΑ"); }
             tableBody.innerHTML = '';
             const uniqueSubjects = Array.from(subjectsInSchedule).sort();
-            
-            // Get teachers specifically for current Region/School
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
-            const key = `${region}|${school}`;
-            const teacherList = teachersBySchool[key] || [];
+            const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
+            const key = `${region}|${school}`; const teacherList = teachersBySchool[key] || [];
 
             uniqueSubjects.forEach(subject => {
                 const row = document.createElement('tr');
                 const cellSubj = document.createElement('td'); cellSubj.innerText = subject; cellSubj.style.fontWeight = 'bold'; row.appendChild(cellSubj);
                 const cellTeacher = document.createElement('td');
                 
-                if (MULTI_TEACHER_SUBJECTS.includes(subject)) {
-                    const container = document.createElement('div'); container.className = 'teacher-row-container';
-                    let currentValues = assignmentsState[subject];
-                    if (typeof currentValues === 'string') currentValues = [currentValues];
-                    if (!Array.isArray(currentValues) || currentValues.length === 0) currentValues = [""];
-                    currentValues.forEach((val, index) => { addTeacherSelectRow(container, teacherList, subject, val, index === 0); });
-                    cellTeacher.appendChild(container);
+                const isNotTaught = assignmentsState[subject] === "NOT_TAUGHT";
+
+                if (isNotTaught) {
+                    const btnRestore = document.createElement('button');
+                    btnRestore.className = 'btn-not-taught';
+                    btnRestore.innerHTML = '🔄 Επαναφορά (Διδάσκεται)';
+                    btnRestore.onclick = function() {
+                        assignmentsState[subject] = [""];
+                        handleMainChange();
+                    };
+                    cellTeacher.appendChild(btnRestore);
+                    row.classList.add('not-taught-row');
                 } else {
-                    const select = createDropdown(teacherList, "teacher-select");
-                    select.setAttribute('data-subject', subject);
-                    if (assignmentsState[subject] && typeof assignmentsState[subject] === 'string') select.value = assignmentsState[subject];
-                    checkTeacherSpecialty(select, subject, select.value);
-                    select.onchange = function() { handleTeacherChange(this); };
-                    cellTeacher.appendChild(select);
+                    if (MULTI_TEACHER_SUBJECTS.includes(subject)) {
+                        const wrapperDiv = document.createElement('div'); wrapperDiv.className = 'assignment-actions-wrapper';
+                        const container = document.createElement('div'); container.className = 'teacher-row-container';
+                        let currentValues = assignmentsState[subject];
+                        if (typeof currentValues === 'string') currentValues = [currentValues];
+                        if (!Array.isArray(currentValues) || currentValues.length === 0) currentValues = [""];
+                        currentValues.forEach((val, index) => { addTeacherSelectRow(container, teacherList, subject, val, index === 0); });
+                        wrapperDiv.appendChild(container);
+
+                        if (OPTIONAL_SUBJECTS.includes(subject)) {
+                            const btnNotTaught = document.createElement('button');
+                            btnNotTaught.className = 'btn-not-taught';
+                            btnNotTaught.innerHTML = '❌ Δεν διδάσκεται';
+                            btnNotTaught.title = 'Επιλέξτε αν η τάξη δεν διδάσκεται αυτό το μάθημα';
+                            btnNotTaught.onclick = function() {
+                                if (confirm(`Ναι σίγουρα θέλετε να σημειώσετε τα ${subject} ως "Δεν διδάσκεται";`)) {
+                                    assignmentsState[subject] = "NOT_TAUGHT";
+                                    handleMainChange();
+                                }
+                            };
+                            wrapperDiv.appendChild(btnNotTaught);
+                        }
+                        cellTeacher.appendChild(wrapperDiv);
+                    } else {
+                        const wrapperDiv = document.createElement('div'); wrapperDiv.className = 'assignment-actions-wrapper';
+                        const select = createDropdown(teacherList, "teacher-select");
+                        select.setAttribute('data-subject', subject);
+                        if (assignmentsState[subject] && typeof assignmentsState[subject] === 'string') select.value = assignmentsState[subject];
+                        checkTeacherSpecialty(select, subject, select.value);
+                        select.onchange = function() { handleTeacherChange(this); };
+                        wrapperDiv.appendChild(select);
+
+                        if (OPTIONAL_SUBJECTS.includes(subject)) {
+                            const btnNotTaught = document.createElement('button');
+                            btnNotTaught.className = 'btn-not-taught';
+                            btnNotTaught.innerHTML = '❌ Δεν διδάσκεται';
+                            btnNotTaught.onclick = function() {
+                                if (confirm(`Ναι σίγουρα θέλετε να σημειώσετε τα ${subject} ως "Δεν διδάσκεται";`)) {
+                                    assignmentsState[subject] = "NOT_TAUGHT";
+                                    handleMainChange();
+                                }
+                            };
+                            wrapperDiv.appendChild(btnNotTaught);
+                        }
+                        cellTeacher.appendChild(wrapperDiv);
+                    }
                 }
                 row.appendChild(cellTeacher); tableBody.appendChild(row);
             });
         }
 
-        
         function addTeacherSelectRow(container, teacherList, subject, value, isFirst) {
             const wrapper = document.createElement('div'); 
             wrapper.className = 'teacher-input-group';
-
             const select = createDropdown(teacherList, "teacher-select");
             select.setAttribute('data-subject', subject); 
             select.value = value || "";
             checkTeacherSpecialty(select, subject, select.value);
-
             select.onchange = function() { handleTeacherChange(this); };
-
             wrapper.appendChild(select);
-
             if (isFirst) {
-                // Κουμπί Προσθήκης (+)
                 const btnAdd = document.createElement('button'); 
                 btnAdd.className = 'btn-add'; 
                 btnAdd.innerText = '+';
@@ -1384,34 +853,23 @@ function dismissTip() {
                 };
                 wrapper.appendChild(btnAdd);
             } else {
-                // Κουμπί Διαγραφής (x) με Επιβεβαίωση
                 const btnRemove = document.createElement('button'); 
                 btnRemove.className = 'btn-remove'; 
                 btnRemove.innerText = 'x';
-
                 btnRemove.onclick = function() { 
-                    const teacherName = select.value; // Παίρνουμε το όνομα του εκπαιδευτικού
-                    
-                    // Αν υπάρχει επιλεγμένος εκπαιδευτικός, ζητάμε επιβεβαίωση
-                    if (teacherName && teacherName.trim() !== "") {
-                        const confirmed = confirm(`Θέλετε να διαγράψετε την ανάθεση: \${teacherName};`);
-                        if (!confirmed) {
-                            return; // Αν πατήσει "Ακύρωση", σταματάμε εδώ.
-                        }
+                    const teacherName = select.value;
+                    if (teacherName && teacherName.trim() !== "") { 
+                        if (!confirm(`Θέλετε να διαγράψετε την ανάθεση: ${teacherName};`)) return; 
                     }
-                    
-                    // Προχωράμε στη διαγραφή
                     container.removeChild(wrapper); 
                     saveMultiTeacherState(subject, container); 
                     validateAssignments(); 
                     saveToLocal(); 
                 };
-                
                 wrapper.appendChild(btnRemove);
             }
             container.appendChild(wrapper);
         }
-
         
         function saveMultiTeacherState(subject, container) {
             const values = []; container.querySelectorAll('select').forEach(sel => { values.push(sel.value); });
@@ -1420,34 +878,23 @@ function dismissTip() {
 
         function checkTeacherSpecialty(selectElement, subject, teacherName) {
             if (!teacherName) { selectElement.classList.remove('teacher-mismatch'); return; }
-            
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
+            const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
             const key = `${region}|${school}`;
-            
-            // Check if ANY mappings exist for this school. If not, don't show errors.
             if (!specialtiesBySchool[key] || Object.keys(specialtiesBySchool[key]).length === 0) return;
-
             let isError = false;
-            // Check if teacher has specific specialties listed
-            if (specialtiesBySchool[key][teacherName]) {
-                 if (!specialtiesBySchool[key][teacherName].has(subject)) isError = true;
-            } else {
-                // If teacher is NOT in the mappings list, but the subject IS restricted (e.g. Physics)
-                // then mark as error. If the subject is not restricted (not in mapping list at all), assume OK.
-                if (restrictedSubjects.has(subject)) isError = true;
-            }
-            
+            if (specialtiesBySchool[key][teacherName]) { if (!specialtiesBySchool[key][teacherName].has(subject)) isError = true; } 
+            else { if (restrictedSubjects.has(subject)) isError = true; }
             if (isError) selectElement.classList.add('teacher-mismatch'); else selectElement.classList.remove('teacher-mismatch');
         }
 
         function validateAssignments() {
-            const warningBox = document.getElementById('assignment-warning');
-            const footerAssign = document.getElementById('status-assign');
-            let hasMissing = false;
-            let totalSubjects = 0; let assignedSubjects = 0;
+            const warningBox = document.getElementById('assignment-warning'); const footerAssign = document.getElementById('status-assign');
+            let hasMissing = false; let totalSubjects = 0; let assignedSubjects = 0;
             const assignRows = document.getElementById('assignments-body').querySelectorAll('tr');
             assignRows.forEach(row => {
+                const subject = row.cells[0].innerText;
+                if (assignmentsState[subject] === "NOT_TAUGHT") return; 
+                
                 totalSubjects++;
                 let hasTeacher = false;
                 const selects = row.querySelectorAll('select');
@@ -1456,42 +903,25 @@ function dismissTip() {
                 selects.forEach(s => { if (!s.value) s.classList.add('missing-assignment'); else s.classList.remove('missing-assignment'); });
             });
             if (hasMissing) warningBox.style.display = 'block'; else warningBox.style.display = 'none';
-            footerAssign.innerHTML = `<span>ΑΝΑΘΕΣΕΙΣ: \${assignedSubjects}/\${totalSubjects}</span>`;
+            footerAssign.innerHTML = `<span>ΑΝΑΘΕΣΕΙΣ: ${assignedSubjects}/${totalSubjects}</span>`;
             footerAssign.className = (totalSubjects > 0 && assignedSubjects === totalSubjects) ? 'status-box success' : 'status-box warning';
         }
 
-        // ==========================================
-        // IMPORT / EXPORT / DEBUG
-        // ==========================================
         function fillDebug() {
-            const regionEl = document.getElementById('region-select');
-            regionEl.value = 'ΨΥΧΙΚΟ';
-            handleRegionChange(regionEl);
-            
-            const schoolEl = document.getElementById('school-select');
-            schoolEl.value = '2';
-            handleSchoolChange(schoolEl);
-            
-            document.getElementById('grade-select').value = 'ΣΤ';
-            document.getElementById('section-select').value = '1';
-
-            const scheduleRows = parseList(DEBUG_DATA_CSV).slice(1);
-            const tableRows = document.getElementById('table-body').querySelectorAll('tr');
+            const regionEl = document.getElementById('region-select'); regionEl.value = 'ΨΥΧΙΚΟ'; handleRegionChange(regionEl);
+            const schoolEl = document.getElementById('school-select'); schoolEl.value = '2'; handleSchoolChange(schoolEl);
+            document.getElementById('grade-select').value = 'ΣΤ'; document.getElementById('section-select').value = '1';
+            const scheduleRows = parseList(DEBUG_DATA_CSV).slice(1); const tableRows = document.getElementById('table-body').querySelectorAll('tr');
             for(let i=0; i<Math.min(scheduleRows.length, tableRows.length); i++) {
-                const parts = scheduleRows[i].split(',');
-                const selects = tableRows[i].querySelectorAll('select');
+                const parts = scheduleRows[i].split(','); const selects = tableRows[i].querySelectorAll('select');
                 for(let j=0; j<selects.length; j++) { if (j+1 < parts.length) { let val = parts[j+1].trim(); if(val.includes("Β΄")) val = val.replace("Β΄", "Β'"); selects[j].value = val; } }
             }
-            
             const assignLines = parseList(DEBUG_ASSIGNMENTS_CSV);
             assignLines.forEach(line => {
-                const parts = line.split(',');
-                if (parts.length >= 5) {
-                    const r = parts[0].trim();
-                    const s = parts[1].trim();
+                const parts = line.split(','); if (parts.length >= 5) {
+                    const r = parts[0].trim(); const s = parts[1].trim();
                     if (r === 'ΨΥΧΙΚΟ' && s === '2') {
-                        const subj = parts[3].trim(); 
-                        const teachers = parts.slice(4).map(t => t.trim());
+                        const subj = parts[3].trim(); const teachers = parts.slice(4).map(t => t.trim());
                         if (teachers.length > 1) assignmentsState[subj] = teachers; else assignmentsState[subj] = teachers[0];
                     }
                 }
@@ -1506,66 +936,34 @@ function dismissTip() {
         }
 
         function importCSV(csvText) {
-            // Clear current table data before importing new
-            document.querySelectorAll('#table-body select').forEach(s => s.value = "");
-            assignmentsState = {};
-
+            document.querySelectorAll('#table-body select').forEach(s => s.value = ""); assignmentsState = {};
             let lines = csvText.trim().split('\n').map(l => l.trim()).filter(l => l !== "");
-            
             if (lines.length > 0 && lines[0].startsWith("#STATUS REPORT")) lines.shift();
-
-            let rowIndex = 0; 
-            const tableRows = document.getElementById('table-body').querySelectorAll('tr');
-            
-            let foundLocation = false;
-
-            // Scan for assignments first to set location
+            let rowIndex = 0; const tableRows = document.getElementById('table-body').querySelectorAll('tr'); let foundLocation = false;
             for(let i=0; i<lines.length; i++) {
                 const parts = parseCSVLine(lines[i]);
                 if (parts.length >= 5 && !parts[0].includes(":")) {
-                     const r = parts[0];
-                     const s = parts[1];
-                     const c = parts[2];
-                     
-                     // Validate Region exists in structure (fixes Header Row Bug)
+                     const r = parts[0]; const s = parts[1]; const c = parts[2];
                      if (r && s && c && schoolStructure[r]) {
-                        const regionEl = document.getElementById('region-select');
-                        regionEl.value = r;
-                        handleRegionChange(regionEl); // Populates school list
-                        
-                        const schoolEl = document.getElementById('school-select');
-                        schoolEl.value = s;
-                        handleSchoolChange(schoolEl); // Checks teachers
-                        
+                        const regionEl = document.getElementById('region-select'); regionEl.value = r; handleRegionChange(regionEl); 
+                        const schoolEl = document.getElementById('school-select'); schoolEl.value = s; handleSchoolChange(schoolEl); 
                         let g = "", sec = "";
                         if (c.startsWith("ΣΤ")) { g = "ΣΤ"; sec = c.substring(2); } else { g = c.substring(0, 1); sec = c.substring(1); }
-                        document.getElementById('grade-select').value = g;
-                        document.getElementById('section-select').value = sec;
-                        foundLocation = true;
-                        break;
+                        document.getElementById('grade-select').value = g; document.getElementById('section-select').value = sec; foundLocation = true; break;
                      }
                 }
             }
-            
-            if (!foundLocation) {
-                 alert("Δεν βρέθηκαν πληροφορίες σχολείου στο αρχείο. Επιλέξτε τοποθεσία χειροκίνητα.");
-            }
-
+            if (!foundLocation) { alert("Δεν βρέθηκαν πληροφορίες σχολείου στο αρχείο. Επιλέξτε τοποθεσία χειροκίνητα."); }
             for (let i = 1; i < lines.length; i++) { 
-                const line = lines[i]; if (!line) continue;
-                const rowValues = parseCSVLine(line);
-                const firstCol = rowValues[0];
-                const isTime = firstCol && firstCol.includes(":"); 
-
+                const line = lines[i]; if (!line) continue; const rowValues = parseCSVLine(line); const firstCol = rowValues[0]; const isTime = firstCol && firstCol.includes(":"); 
                 if (isTime && rowIndex < tableRows.length) {
                     const selects = tableRows[rowIndex].querySelectorAll('select');
                     for(let j=0; j<selects.length; j++) { if (j+1 < rowValues.length) selects[j].value = rowValues[j+1]; }
                     rowIndex++;
                 } else if (!isTime && rowValues.length >= 5) {
                     const r = rowValues[0];
-                    if (schoolStructure[r]) { // Valid assignment line
-                        const subj = rowValues[3]; 
-                        const teachers = rowValues.slice(4);
+                    if (schoolStructure[r]) { 
+                        const subj = rowValues[3]; const teachers = rowValues.slice(4);
                         if (teachers.length > 1) assignmentsState[subj] = teachers; else assignmentsState[subj] = teachers[0];
                     }
                 }
@@ -1583,166 +981,95 @@ function dismissTip() {
         }
 
         function exportToCSV() {
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
-            const grade = document.getElementById('grade-select').value;
-            const section = document.getElementById('section-select').value;
-            
-            if (!region || !school || !grade || !section) { alert("Παρακαλώ συμπληρώστε όλα τα πεδία πριν την εξαγωγή!"); return; }
-            
-            const hoursOK = document.getElementById('status-hours').classList.contains('success');
-            const subjOK = document.getElementById('status-subjects').classList.contains('success');
-            const assignOK = document.getElementById('status-assign').classList.contains('success');
-            const isComplete = hoursOK && subjOK && assignOK;
-
-            let teacherName = ""; let greekTeacher = assignmentsState["ΕΛΛΗΝΙΚΑ"];
-            if (Array.isArray(greekTeacher) && greekTeacher.length > 0) teacherName = greekTeacher[0];
-            else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
-            if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
-            
-            // Παράδειγμα timestamp: 20260106_153045 (για 06/01/2026 15:30:45)
-            const now = new Date();
-            const timestamp = now.getFullYear() +
-                String(now.getMonth() + 1).padStart(2, '0') +
-                String(now.getDate()).padStart(2, '0') +
-                '_' +
-                String(now.getHours()).padStart(2, '0') +
-                String(now.getMinutes()).padStart(2, '0') +
-                String(now.getSeconds()).padStart(2, '0');
-
-            // ΝΕΟ: Δημιουργία βασικού ονόματος χωρίς κατάληξη
-            let baseFileName = `\${region}_\${school}_\${grade}\${section}_schedule`;
-            if (teacherName) baseFileName = `\${region}_\${school}_\${grade}\${section}_\${teacherName}_schedule`;
-
-            // Προσθήκη timestamp και κατάληξης
-            let fileName = `\${baseFileName}_\${timestamp}.txt`;
-            if (!isComplete) fileName = fileName.replace(".txt", "_INCOMPLETE.txt"); // Αυτό θα γίνει: ..._20260106_153045_INCOMPLETE.txt
-
-
-            const className = `\${grade}\${section}`;
-            let csvContent = ""; 
-
-            if (!isComplete) {
-                const hTxt = document.getElementById('status-hours').innerText;
-                const sTxt = document.getElementById('status-subjects').innerText;
-                const aTxt = document.getElementById('status-assign').innerText;
-                csvContent += `#STATUS REPORT: \${hTxt} | \${sTxt} | \${aTxt}\n`;
-            }
-
-            const days = RAW_DAYS.split(',').map(s => s.trim()); csvContent += days.join(",") + "\n";
-            const scheduleRows = document.getElementById('table-body').querySelectorAll('tr');
-            scheduleRows.forEach(r => {
-                let rowData = []; rowData.push(r.cells[0].innerText);
-                r.querySelectorAll('select').forEach(sel => { let v = sel.value; if(v.includes(",")) v = `"${v}"`; rowData.push(v); });
-                csvContent += rowData.join(",") + "\n";
-            });
-            csvContent += "\n\n";
-            
-            // --- NEW EXPORT FORMAT FOR ASSIGNMENTS ---
-            const assignRows = document.getElementById('assignments-body').querySelectorAll('tr');
-            assignRows.forEach(r => {
-                const subject = r.cells[0].innerText; 
-                let teachers = [];
-                r.querySelectorAll('select').forEach(sel => { if (sel.value) teachers.push(sel.value); });
-                teachers.sort((a, b) => a.localeCompare(b, 'el'));
-                
-                if (teachers.length > 0) {
-                    // FORMAT: REGION,SCHOOL,CLASS,SUBJECT,TEACHER1...
-                    let lineParts = [region, school, className, subject, ...teachers];
-                    let csvLine = lineParts.map(part => part.includes(",") ? `"${part}"` : part).join(",");
-                    csvContent += csvLine + "\n";
-                }
-            });
-            
-            // --------------------- Παλιά εντολή που κατέβαζε type csv αλλά υπάρχει σενάριο να προτείνει ο browser open with excel
-            // const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-
-            // ΝΕΟ BLOB:
-            const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/plain;charset=utf-8' });
+            const data = generateExportData(); if (!data) return;
+            const isComplete = data.isComplete; const timestamp = data.timestamp;
+            let fileName = `${data.baseFileName}_${timestamp}.txt`;
+            if (!isComplete) fileName = fileName.replace(".txt", "_INCOMPLETE.txt");
+            const blob = new Blob(["\uFEFF" + data.csvContent], { type: 'text/plain;charset=utf-8' });
             const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = fileName;
             document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
-        function injectVariable(htmlContent, varName, data) {
-            const marker = `const ${varName} = \`\``;
-            const parts = htmlContent.split(marker);
-            if (parts.length !== 2) return htmlContent; 
-            return parts[0] + `const ${varName} = \`${data}\`` + parts[1];
+        async function exportToHTML() {
+            const data = generateExportData(); if (!data) return;
+            if (!data.isComplete) { alert("⚠️ ΠΡΟΣΟΧΗ: Υπάρχουν ελλείψεις ή λάθη στις αναθέσεις του προγράμματος (Ώρες, Μαθήματα ή Αναθέσεις). Παρακαλώ διορθώστε τα πριν την εξαγωγή σε HTML."); return; }
+            let htmlTemplate = ""; let templateLoaded = false;
+            try {
+                let response = await fetch(PRIMARY_TEMPLATE_URL + "?t=" + new Date().getTime());
+                if (!response.ok) throw new Error("Network response was not ok");
+                htmlTemplate = await response.text(); templateLoaded = true;
+            } catch (e) { console.warn("Failed to load template from Primary URL.", e); }
+            if (!templateLoaded && FALLBACK_TEMPLATE_URL && FALLBACK_TEMPLATE_URL.trim() !== "") {
+                try {
+                    let response = await fetch(FALLBACK_TEMPLATE_URL + "?t=" + new Date().getTime());
+                    if (!response.ok) throw new Error("Network response was not ok");
+                    htmlTemplate = await response.text(); templateLoaded = true;
+                } catch (e) { console.warn("Failed to load template from Fallback URL.", e); }
+            }
+            if (!templateLoaded) { alert("❌ ΣΦΑΛΜΑ: Αδυναμία φόρτωσης του HTML προτύπου από τα URLs. Παρακαλώ ελέγξτε τη σύνδεσή σας ή τα URLs στον κώδικα."); return; }
+            const safeSchedule = data.scheduleStr.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+            const safeTeachers = data.teachersStr.replace(/`/g, '\\`').replace(/\$\{/g, '\\${');
+            let finalHTML = injectVariable(htmlTemplate, 'RAW_SCHEDULE', safeSchedule);
+            finalHTML = injectVariable(finalHTML, 'RAW_TEACHERS', safeTeachers);
+            const fileName = `${data.baseFileName}_LinksWebApp.html`;
+            const blob = new Blob([finalHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = fileName;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
         }
 
-        async function exportToHTML() {
-            const region = document.getElementById('region-select').value;
-            const school = document.getElementById('school-select').value;
-            const grade = document.getElementById('grade-select').value;
-            const section = document.getElementById('section-select').value;
-            
-            if (!region || !school || !grade || !section) { alert("Παρακαλώ συμπληρώστε όλα τα πεδία πριν την εξαγωγή!"); return; }
-            
-            // Build schedule string
-            const days = RAW_DAYS.split(',').map(s => s.trim());
-            let scheduleStr = days.join(",") + "\n";
+        function injectVariable(htmlContent, varName, dataStr) {
+            const marker = `const ${varName} = \`\``; const parts = htmlContent.split(marker);
+            if (parts.length !== 2) return htmlContent; 
+            return parts[0] + `const ${varName} = \`${dataStr}\`` + parts[1];
+        }
+
+        function generateExportData() {
+            const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
+            const grade = document.getElementById('grade-select').value; const section = document.getElementById('section-select').value;
+            if (!region || !school || !grade || !section) { alert("Παρακαλώ συμπληρώστε όλα τα πεδία πριν την εξαγωγή!"); return null; }
+            const hoursOK = document.getElementById('status-hours').classList.contains('success');
+            const subjOK = document.getElementById('status-subjects').classList.contains('success');
+            const assignOK = document.getElementById('status-assign').classList.contains('success');
+            const isComplete = hoursOK && subjOK && assignOK;
+            let teacherName = ""; let greekTeacher = assignmentsState["ΕΛΛΗΝΙΚΑ"];
+            if (Array.isArray(greekTeacher) && greekTeacher.length > 0) teacherName = greekTeacher[0];
+            else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
+            if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
+            const now = new Date();
+            const timestamp = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
+            let baseFileName = `${region}_${school}_${grade}${section}_schedule`;
+            if (teacherName) baseFileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule`;
+            const className = `${grade}${section}`;
+            let csvContent = ""; 
+            if (!isComplete) {
+                const hTxt = document.getElementById('status-hours').innerText; const sTxt = document.getElementById('status-subjects').innerText; const aTxt = document.getElementById('status-assign').innerText;
+                csvContent += `#STATUS REPORT: ${hTxt} | ${sTxt} | ${aTxt}\n`;
+            }
+            const days = RAW_DAYS.split(',').map(s => s.trim()); csvContent += days.join(",") + "\n";
             const scheduleRows = document.getElementById('table-body').querySelectorAll('tr');
+            let scheduleStr = days.join(",") + "\n"; let teachersStr = "";
             scheduleRows.forEach(r => {
                 let rowData = []; rowData.push(r.cells[0].innerText);
                 r.querySelectorAll('select').forEach(sel => { let v = sel.value; if(v.includes(",")) v = `"${v}"`; rowData.push(v); });
-                scheduleStr += rowData.join(",") + "\n";
+                csvContent += rowData.join(",") + "\n"; scheduleStr += rowData.join(",") + "\n";
             });
-            
-            // Build assignments string
-            let teachersStr = "";
-            const className = `${grade}${section}`;
+            csvContent += "\n\n";
             const assignRows = document.getElementById('assignments-body').querySelectorAll('tr');
             assignRows.forEach(r => {
                 const subject = r.cells[0].innerText; 
+                if (assignmentsState[subject] === "NOT_TAUGHT") return; 
                 let teachers = [];
                 r.querySelectorAll('select').forEach(sel => { if (sel.value) teachers.push(sel.value); });
                 teachers.sort((a, b) => a.localeCompare(b, 'el'));
-                
                 if (teachers.length > 0) {
                     let lineParts = [region, school, className, subject, ...teachers];
                     let csvLine = lineParts.map(part => part.includes(",") ? `"${part}"` : part).join(",");
-                    teachersStr += csvLine + "\n";
+                    csvContent += csvLine + "\n"; teachersStr += csvLine + "\n";
                 }
             });
-
-            try {
-                // Fetch template from the same directory on GitHub
-                const response = await fetch(TEMPLATE_URL + "?t=" + new Date().getTime());
-                if (!response.ok) throw new Error("Αδυναμία ανάκτησης του αρχείου template.");
-                let templateHtml = await response.text();
-                
-                // Process strings for safe injection
-                const safeSchedule = scheduleStr.replace(/`/g, '\\`').replace(/\${/g, '\\${');
-                const safeTeachers = teachersStr.replace(/`/g, '\\`').replace(/\${/g, '\\${');
-                
-                // Inject data into the template
-                templateHtml = injectVariable(templateHtml, 'RAW_SCHEDULE', safeSchedule);
-                templateHtml = injectVariable(templateHtml, 'RAW_TEACHERS', safeTeachers);
-                
-                // Automatic Naming Convention
-                let teacherName = ""; let greekTeacher = assignmentsState["ΕΛΛΗΝΙΚΑ"];
-                if (Array.isArray(greekTeacher) && greekTeacher.length > 0) teacherName = greekTeacher[0];
-                else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
-                if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
-                
-                const sanitize = (str) => str.replace(/ /g, '_').replace(/[^a-zA-Z0-9α-ωΑ-Ω._-]/g, '');
-                let baseFileName = `${sanitize(region)}_${sanitize(school)}_${sanitize(grade)}${sanitize(section)}`;
-                if (teacherName) baseFileName += `_${sanitize(teacherName)}`;
-                const fileName = `${baseFileName}_LinksWebApp.html`;
-                
-                // Download the final standalone Web App HTML
-                const blob = new Blob([templateHtml], { type: 'text/html;charset=utf-8' });
-                const url = URL.createObjectURL(blob); const link = document.createElement("a"); link.href = url; link.download = fileName;
-                document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url);
-                
-                alert("Επιτυχής δημιουργία και λήψη του τελικού HTML αρχείου!");
-            } catch (error) {
-                console.error(error);
-                alert("ΣΦΑΛΜΑ: " + error.message);
-            }
+            return { csvContent, isComplete, baseFileName, timestamp, scheduleStr, teachersStr };
         }
 
-        // Initialize with External Loader
         window.onload = loadExternalData;
     </script>
 </body>
