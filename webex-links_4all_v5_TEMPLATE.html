@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="el">
+<!-- VERSION: v5.0 -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ωρολόγιο Πρόγραμμα Webex</title>
+    <style>
+        :root { 
+            --primary-blue: #004a99; 
+            --hover-blue: #e3f2fd; 
+            --special-bg: #fffde7; 
+            --border-color: #e0e0e0;
+            --active-cell-bg: #ffe0b2; 
+            --active-cell-border: #f57c00;
+            --next-cell-bg: #e3f2fd;
+            --next-cell-border: #004a99;
+            --panel-bg: #f8f9fa; 
+            --text-muted: #546e7a;
+        }
+
+        * { box-sizing: border-box; }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: auto; 
+            background: #eceff1; 
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
+            overflow-y: auto; 
+        }
+
+        body { 
+            padding: 10px;
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+        }
+
+        #school-header {
+            color: var(--text-muted);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+            margin-bottom: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        h2 { 
+            color: var(--primary-blue); 
+            text-transform: uppercase; 
+            margin: 0 0 15px; 
+            text-align: center; 
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            user-select: none; 
+            cursor: pointer; 
+        }
+
+        .schedule-card {
+            width: 100%;
+            max-width: 1100px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            overflow: hidden; 
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 5px; 
+        }
+
+        .table-scroll-area {
+            overflow: auto;
+            max-height: 70vh; 
+            width: 100%;
+            position: relative;
+        }
+
+        table { 
+            border-collapse: separate; 
+            border-spacing: 0;
+            width: 100%; 
+            min-width: 600px; 
+        }
+
+        th, td {
+            border-bottom: 1px solid var(--border-color);
+            border-right: 1px solid var(--border-color);
+            padding: 10px 6px; 
+            text-align: center; 
+            font-size: 0.85rem; 
+        }
+
+        th:first-child {
+            position: sticky;
+            left: 0;
+            top: 0;
+            z-index: 30;
+            border-right: 2px solid var(--border-color);
+        }
+
+        th { 
+            background: var(--primary-blue); 
+            color: white; 
+            text-transform: uppercase; 
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            font-weight: 600;
+        }
+
+        td:first-child { 
+            background: #fcfcfc; 
+            font-weight: bold; 
+            color: #444; 
+            position: sticky;
+            left: 0;
+            z-index: 15;
+            border-right: 2px solid var(--border-color);
+        }
+
+        td { 
+            background: white;
+            transition: background 0.2s;
+            cursor: pointer;
+        }
+
+        td:not(:first-child):hover { 
+            background: var(--hover-blue); 
+            color: var(--primary-blue); 
+            text-shadow: 0 0 0.5px var(--primary-blue);
+        }
+
+        .current-active-cell {
+            background-color: var(--active-cell-bg) !important;
+            border: 2px solid var(--active-cell-border) !important;
+            font-weight: bold;
+            color: #d84315;
+            position: relative;
+            z-index: 6;
+        }
+
+        .next-active-cell {
+            background-color: var(--next-cell-bg) !important;
+            border: 2px dashed var(--next-cell-border) !important;
+            color: var(--primary-blue);
+            font-weight: bold;
+            position: relative;
+            z-index: 6;
+        }
+
+        .status-footer {
+            background: var(--panel-bg);
+            border-top: 1px solid #ddd;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-text {
+            flex: 1;
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.3;
+        }
+
+        .status-text strong {
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .status-teacher {
+            color: var(--primary-blue);
+            font-weight: 600;
+            display: block;
+        }
+
+        .enter-btn {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            font-size: 0.9rem;
+            border-radius: 50px; 
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            box-shadow: 0 4px 6px rgba(0,40,100,0.15);
+            white-space: nowrap;
+            min-width: 160px;
+        }
+
+        .enter-btn:hover:not(:disabled) {
+            background-color: #003366;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px rgba(0,40,100,0.2);
+        }
+
+        .enter-btn:disabled {
+            background-color: #d1d5db;
+            color: #888;
+            cursor: not-allowed;
+            box-shadow: none;
+            transform: none;
+        }
+
+        #debug-panel {
+            display: none;
+            margin-top: 20px;
+            padding: 10px;
+            background: #37474f;
+            color: #fff;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            margin-bottom: 20px;
+            white-space: nowrap; 
+        }
+        
+        .time-input {
+            width: 45px;
+            padding: 5px;
+            border-radius: 4px;
+            border: none;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+        }
+
+        #debug-panel select { padding: 5px; border-radius: 4px; border:none; background:#eceff1; color:#333; font-weight:bold; }
+        #debug-panel button { padding: 5px 10px; background: #ff9800; border:none; border-radius:4px; font-weight:bold; cursor:pointer; margin-left: 5px;}
+
+        .modal { 
+            display: none; 
+            position: fixed; 
+            z-index: 2000; 
+            left: 0; top: 0; 
+            width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); 
+            backdrop-filter: blur(4px); 
+        }
+
+        .modal-content { 
+            background: white; 
+            margin: 20vh auto; 
+            padding: 25px; 
+            border-radius: 16px; 
+            width: 90%; 
+            max-width: 360px; 
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2); 
+            text-align: center; 
+        }
+
+        .teacher-btn { 
+            display: block; width: 100%; 
+            padding: 14px; margin: 10px 0; 
+            background: #fff; 
+            border: 1px solid #cce0f5; 
+            color: var(--primary-blue); 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 1rem; 
+            font-weight: 500;
+            transition: 0.2s; 
+        }
+
+        .teacher-btn:hover { background: var(--primary-blue); color: white; border-color: var(--primary-blue); }
+
+        .close-btn { 
+            margin-top: 20px; background: none; 
+            border: none; color: #777; 
+            font-size: 0.9rem;
+            text-decoration: underline; cursor: pointer; 
+        }
+
+        /* Loading Indicator */
+        #loader-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #eceff1; z-index: 5000;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            font-family: sans-serif;
+        }
+        .spinner {
+            width: 40px; height: 40px;
+            border: 4px solid #ddd;
+            border-top: 4px solid var(--primary-blue);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        @media screen and (max-width: 600px) {
+            body { padding: 5px; }
+            #school-header { font-size: 0.9rem; margin-top: 5px; }
+            h2 { font-size: 1.1rem; margin: 2px 0 10px; }
+            .status-footer { flex-direction: column; text-align: center; gap: 10px; padding: 10px; }
+            .enter-btn { width: 100%; padding: 12px; }
+            .modal-content { margin: 25vh auto; }
+            #debug-panel { white-space: normal; text-align: center; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loader-overlay">
+        <div class="spinner"></div>
+        <p style="margin-top:15px; color:#546e7a;">Φόρτωση δεδομένων...</p>
+    </div>
+
+    <div id="school-header"></div>
+    
+    <h2 id="dynamic-title" onclick="handleSecretTap()">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</h2>
+
+    <div class="schedule-card">
+        <div class="table-scroll-area">
+            <table id="schedule-table">
+                <thead><tr id="header-row"></tr></thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+        <div class="status-footer">
+            <div class="status-text" id="lesson-info-text">Αναμονή...</div>
+            <button id="enter-lesson-btn" class="enter-btn" disabled onclick="enterCurrentLesson()">ΔΕΝ ΥΠΑΡΧΕΙ ΜΑΘΗΜΑ</button>
+        </div>
+    </div>
+
+    <div id="debug-panel">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+            <strong>DEBUG:</strong>
+            <select id="debug-day">
+                <option value="1">Δευτέρα</option>
+                <option value="2">Τρίτη</option>
+                <option value="3">Τετάρτη</option>
+                <option value="4">Πέμπτη</option>
+                <option value="5">Παρασκευή</option>
+                <option value="6">Σάββατο</option>
+                <option value="0">Κυριακή</option>
+            </select>
+            
+            <input type="number" id="debug-hour" class="time-input" min="0" max="23" placeholder="HH" value="08"> : 
+            <input type="number" id="debug-minute" class="time-input" min="0" max="59" placeholder="MM" value="00">
+            
+            <button onclick="applyDebugTime()">SET</button>
+            <button onclick="resetDebug()" style="background:#546e7a;">RESET</button>
+            
+            <span id="version-display" style="margin-left: auto; font-size: 0.85rem; color: #ffd54f; font-weight: bold; white-space: nowrap;"></span>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div id="modalTitle" style="font-weight:bold; color:var(--primary-blue); font-size:1.1rem; margin-bottom:20px;">Επιλέξτε Τμήμα</div>
+            <div id="modalButtons"></div>
+            <button class="close-btn" onclick="closeModal()">Κλείσιμο</button>
+        </div>
+    </div>
+
+    <script>
+        const BASE_URL = "https://arsakeio.webex.com/meet/";
+
+        const RAW_SCHOOL_NAMES = `
+ΨΥΧΙΚΟ,1,Α' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
+ΨΥΧΙΚΟ,2,Β' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
+ΨΥΧΙΚΟ,3,Γ' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
+ΕΚΑΛΗ,1,Α' ΑΡΣΑΚΕΙΟ-ΤΟΣΙΤΣΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΚΑΛΗΣ
+ΕΚΑΛΗ,2,Β' ΑΡΣΑΚΕΙΟ-ΤΟΣΙΤΣΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΚΑΛΗΣ
+ΕΚΑΛΗ,3,Γ' ΑΡΣΑΚΕΙΟ-ΤΟΣΙΤΣΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΕΚΑΛΗΣ
+ΘΕΣΣΑΛΟΝΙΚΗ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΘΕΣΣΑΛΟΝΙΚΗΣ
+ΠΑΤΡΑ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΠΑΤΡΑΣ
+ΙΩΑΝΝΙΝΑ,1,ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΙΩΑΝΝΙΝΩΝ`;
+
+        // =========================================================================================
+        // ΑΥΤΕΣ ΟΙ ΜΕΤΑΒΛΗΤΕΣ ΓΕΜΙΖΟΥΝ ΑΥΤΟΜΑΤΑ ΑΠΟ ΤΗΝ ΕΦΑΡΜΟΓΗ (INJECTOR)
+        const RAW_SCHEDULE = ``;
+        const RAW_TEACHERS = ``;
+        // =========================================================================================
+
+        const teacherMap = {};
+        const schoolNamesMap = {}; 
+        let departmentName = "ΤΜΗΜΑ";
+        let timeSlots = []; 
+        let activeLessonData = null;
+        let debugOverride = null;
+        let timerInterval = null;
+        let debugTapCount = 0;
+        let debugTapTimer = null;
+
+        // --- HELPER: Νice format for usernames ---
+        function formatDisplayName(username) {
+            if (!username) return "Άγνωστος";
+            // Μετατρέπει το "petrakis.g" σε "Petrakis G."
+            const parts = username.split(/[._]/);
+            const formatted = parts.map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase());
+            return formatted.map(p => p.length === 1 ? p.toUpperCase() + '.' : p).join(' ');
+        }
+
+        function getAppVersion() {
+            const firstChild = document.documentElement.firstChild;
+            if (firstChild && firstChild.nodeType === 8) {
+                const match = firstChild.textContent.match(/VERSION:\s*(\S+)/);
+                return match ? match[1] : "";
+            }
+            return "";
+        }
+
+        function initApp() {
+            // Δεν χρειαζόμαστε πλέον async φόρτωση για τα links, οπότε ξεκινάμε απευθείας
+            document.getElementById('loader-overlay').style.display = 'none';
+            
+            parseData();
+            initTable();
+            checkCurrentLesson();
+            startTimer();
+            resizeIframe();
+        }
+
+        function parseData() {
+            // 1. Parse School Names
+            RAW_SCHOOL_NAMES.trim().split('\n').forEach(line => {
+                const parts = line.split(',').map(s => s.trim());
+                if(parts.length >= 3) {
+                    const key = parts[0] + "_" + parts[1]; 
+                    schoolNamesMap[key] = parts[2];
+                }
+            });
+
+            // 2. Parse Teachers (Πλέον περιέχουν απευθείας τα Webex Usernames)
+            const teacherLines = RAW_TEACHERS.trim().split('\n');
+            let foundSchoolInfo = false;
+
+            teacherLines.forEach((line, index) => {
+                const parts = line.split(',').map(s => s.trim());
+                if(parts.length < 5) return; // Περιμένουμε τουλάχιστον 5 στήλες
+                
+                const region = parts[0];
+                const schoolId = parts[1];
+                const dept = parts[2];
+                const subject = parts[3];
+                const teachers = parts.slice(4).filter(t => t !== ""); // Αυτά είναι τα Webex Usernames!
+
+                if(!foundSchoolInfo) {
+                    departmentName = dept;
+                    const schoolKey = region + "_" + schoolId;
+                    const fullSchoolName = schoolNamesMap[schoolKey] || "";
+                    
+                    document.getElementById('school-header').innerText = fullSchoolName;
+                    document.getElementById('dynamic-title').innerText = `ΤΜΗΜΑ ${departmentName} - ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ`;
+                    
+                    foundSchoolInfo = true;
+                }
+                
+                teacherMap[subject] = teachers;
+            });
+        }
+
+        function parseTimeRange(rangeStr) {
+            const cleanStr = rangeStr.replace('–', '-');
+            const [startStr, endStr] = cleanStr.split('-');
+            const toMins = (t) => {
+                const [h, m] = t.split(':').map(Number);
+                return h * 60 + m;
+            };
+            return { start: toMins(startStr), end: toMins(endStr), label: cleanStr };
+        }
+
+        function initTable() {
+            const lines = RAW_SCHEDULE.trim().split('\n');
+            if(lines.length === 0) return;
+
+            const headers = lines[0].split(',').map(s => s.trim());
+            const headerRow = document.getElementById('header-row');
+            headers.forEach(h => {
+                const th = document.createElement('th');
+                th.innerText = h;
+                headerRow.appendChild(th);
+            });
+
+            const tbody = document.getElementById('table-body');
+            for(let i=1; i < lines.length; i++) {
+                const cells = lines[i].split(',').map(s => s.trim());
+                const timeData = parseTimeRange(cells[0]);
+                timeSlots.push({ ...timeData, rowIndex: i-1 });
+
+                const tr = document.createElement('tr');
+                
+                for(let colIndex = 0; colIndex < 6; colIndex++) {
+                    const td = document.createElement('td');
+                    const cellText = (cells[colIndex] !== undefined) ? cells[colIndex] : "";
+                    
+                    td.innerText = cellText;
+                    td.dataset.row = i-1;
+                    td.dataset.col = colIndex; 
+
+                    if(colIndex > 0 && cellText !== "") {
+                        if(cellText.includes("ΑΓΓΛΙΚΑ")) {
+                            td.onclick = () => openModal("ΑΓΓΛΙΚΑ");
+                            td.style.backgroundColor = "var(--special-bg)";
+                        } else if(cellText.includes("ΞΕΝΗ ΓΛΩΣΣΑ")) {
+                            td.onclick = () => openModal("FOREIGN");
+                            td.style.backgroundColor = "var(--special-bg)";
+                        } else {
+                            td.onclick = () => handleDirectLink(cellText);
+                        }
+                    }
+                    tr.appendChild(td);
+                }
+                tbody.appendChild(tr);
+            }
+        }
+
+        function checkCurrentLesson() {
+            let now = new Date();
+            let day = now.getDay(); 
+            let currentMins = now.getHours() * 60 + now.getMinutes();
+
+            if (debugOverride) {
+                day = debugOverride.day;
+                currentMins = debugOverride.hours * 60 + debugOverride.minutes;
+            }
+
+            document.querySelectorAll('.current-active-cell').forEach(el => el.classList.remove('current-active-cell'));
+            document.querySelectorAll('.next-active-cell').forEach(el => el.classList.remove('next-active-cell'));
+            
+            const btn = document.getElementById('enter-lesson-btn');
+            const infoTxt = document.getElementById('lesson-info-text');
+            
+            activeLessonData = null;
+            
+            if(day === 0 || day === 6) {
+                infoTxt.innerHTML = "Καλό Σαββατοκύριακο!";
+                btn.disabled = true;
+                btn.innerText = "ΕΚΤΟΣ ΛΕΙΤΟΥΡΓΙΑΣ";
+                return;
+            }
+
+            let foundCurrent = false;
+            let foundNext = null;
+
+            for (const slot of timeSlots) {
+                if(currentMins >= slot.start && currentMins < slot.end) {
+                    const selector = `td[data-row="${slot.rowIndex}"][data-col="${day}"]`;
+                    const cell = document.querySelector(selector);
+                    if(cell && cell.innerText.trim() !== "") {
+                        foundCurrent = true;
+                        updateFooter(slot, cell, "CURRENT");
+                        break;
+                    }
+                }
+            }
+
+            if (!foundCurrent) {
+                for (const slot of timeSlots) {
+                    if (slot.start > currentMins) {
+                        const selector = `td[data-row="${slot.rowIndex}"][data-col="${day}"]`;
+                        const cell = document.querySelector(selector);
+                        if(cell && cell.innerText.trim() !== "") {
+                            foundNext = true;
+                            updateFooter(slot, cell, "NEXT");
+                            break;
+                        }
+                    }
+                }
+
+                if (!foundNext) {
+                    infoTxt.innerHTML = "Το πρόγραμμα ολοκληρώθηκε για σήμερα.";
+                    btn.disabled = true;
+                    btn.innerText = "ΤΕΛΟΣ ΠΡΟΓΡΑΜΜΑΤΟΣ";
+                }
+            }
+        }
+
+        function updateFooter(slot, cell, type) {
+            const subject = cell.innerText.trim();
+            const btn = document.getElementById('enter-lesson-btn');
+            const infoTxt = document.getElementById('lesson-info-text');
+
+            if (type === "CURRENT") {
+                cell.classList.add('current-active-cell');
+            } else {
+                cell.classList.add('next-active-cell');
+            }
+            
+            cell.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            let teachers = [];
+            let isMulti = false;
+            let teacherDisplay = "";
+
+            if (subject.includes("ΑΓΓΛΙΚΑ")) {
+                teachers = teacherMap["ΑΓΓΛΙΚΑ"] || [];
+                isMulti = true;
+                teacherDisplay = teachers.map(formatDisplayName).join(", ");
+            } else if (subject.includes("ΞΕΝΗ ΓΛΩΣΣΑ")) {
+                const fr = teacherMap["ΓΑΛΛΙΚΑ"] || [];
+                const de = teacherMap["ΓΕΡΜΑΝΙΚΑ"] || [];
+                teachers = [...fr, ...de];
+                isMulti = true;
+                teacherDisplay = teachers.map(formatDisplayName).join(", ");
+            } else {
+                teachers = teacherMap[subject] || [];
+                teacherDisplay = teachers.map(formatDisplayName).join(", ");
+            }
+
+            let prefix = type === "CURRENT" ? "Τώρα:" : "Επόμενο:";
+            let btnText = type === "CURRENT" ? "ΜΠΕΣ ΣΤΟ ΜΑΘΗΜΑ" : "ΜΠΕΣ ΣΤΟ ΕΠΟΜΕΝΟ";
+            let timeLabel = slot.label;
+            
+            infoTxt.innerHTML = `
+                ${prefix} <strong>${subject}</strong> <span style="color:#777; font-size:0.9em;">(${timeLabel})</span><br>
+                <span class="status-teacher">${teacherDisplay || "Άγνωστος"}</span>
+            `;
+            
+            btn.disabled = false;
+            btn.innerText = btnText;
+            
+            activeLessonData = {
+                subject: subject,
+                isMulti: isMulti,
+                teachers: teachers // Πλέον περιέχει τα usernames
+            };
+        }
+
+        function enterCurrentLesson() {
+            if(!activeLessonData) return;
+            if(activeLessonData.isMulti) {
+                if(activeLessonData.subject.includes("ΑΓΓΛΙΚΑ")) openModal("ΑΓΓΛΙΚΑ");
+                else openModal("FOREIGN");
+            } else {
+                const tName = activeLessonData.teachers[0];
+                if(tName) {
+                    window.open(BASE_URL + tName, '_blank');
+                } else {
+                    alert("Δεν βρέθηκε εκπαιδευτικός για αυτό το μάθημα.");
+                }
+            }
+        }
+
+        function handleSecretTap() {
+            debugTapCount++;
+            if (debugTapCount >= 5) {
+                toggleDebugPanel();
+                debugTapCount = 0; 
+                clearTimeout(debugTapTimer);
+            } else {
+                clearTimeout(debugTapTimer);
+                debugTapTimer = setTimeout(() => { debugTapCount = 0; }, 1000);
+            }
+        }
+
+        function toggleDebugPanel() {
+            const p = document.getElementById('debug-panel');
+            const isVisible = (p.style.display === "block");
+            p.style.display = isVisible ? "none" : "block";
+            
+            if (!isVisible) {
+                const version = getAppVersion();
+                document.getElementById('version-display').textContent = version || "–";
+            } else {
+                document.getElementById('version-display').textContent = "";
+            }
+            
+            resizeIframe();
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if(e.key === "*") {
+                toggleDebugPanel();
+            }
+        });
+
+        function applyDebugTime() {
+            const d = parseInt(document.getElementById('debug-day').value);
+            let h = parseInt(document.getElementById('debug-hour').value);
+            let m = parseInt(document.getElementById('debug-minute').value);
+            
+            if(isNaN(h)) h = 8;
+            if(isNaN(m)) m = 0;
+            if(h > 23) h = 23;
+            if(m > 59) m = 59;
+            
+            document.getElementById('debug-hour').value = h.toString().padStart(2,'0');
+            document.getElementById('debug-minute').value = m.toString().padStart(2,'0');
+
+            debugOverride = { day: d, hours: h, minutes: m };
+            checkCurrentLesson();
+            restartTimer(); 
+        }
+
+        function resetDebug() {
+            debugOverride = null;
+            checkCurrentLesson();
+            restartTimer();
+            alert("Επαναφορά σε πραγματικό χρόνο.");
+        }
+        
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (debugOverride) {
+                    debugOverride.minutes++;
+                    if (debugOverride.minutes >= 60) {
+                        debugOverride.minutes = 0;
+                        debugOverride.hours++;
+                        if (debugOverride.hours >= 24) {
+                            debugOverride.hours = 0;
+                            debugOverride.day = (debugOverride.day + 1) % 7;
+                            document.getElementById('debug-day').value = debugOverride.day;
+                        }
+                    }
+                    document.getElementById('debug-hour').value = debugOverride.hours.toString().padStart(2, '0');
+                    document.getElementById('debug-minute').value = debugOverride.minutes.toString().padStart(2, '0');
+                }
+                checkCurrentLesson();
+            }, 60000); 
+        }
+        
+        function restartTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            startTimer();
+        }
+
+        function handleDirectLink(subject) {
+            const teachers = teacherMap[subject];
+            if(teachers && teachers.length > 0) {
+                const username = teachers[0];
+                window.open(BASE_URL + username, '_blank');
+            }
+        }
+
+        function openModal(type) {
+            const container = document.getElementById('modalButtons');
+            const title = document.getElementById('modalTitle');
+            container.innerHTML = '';
+            if(type === "ΑΓΓΛΙΚΑ") {
+                title.innerText = "ΑΓΓΛΙΚΑ - Επιλέξτε Καθηγητή";
+                (teacherMap["ΑΓΓΛΙΚΑ"] || []).forEach(t => createBtn(container, t));
+            } else {
+                title.innerText = "Β' ΞΕΝΗ ΓΛΩΣΣΑ";
+                ["ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"].forEach(lang => {
+                    const teachers = teacherMap[lang] || [];
+                    if(teachers.length > 0) {
+                        const h = document.createElement('div');
+                        h.innerText = lang;
+                        h.style.cssText = "font-weight:bold; margin:10px 0 5px; color:#555;";
+                        container.appendChild(h);
+                        teachers.forEach(t => createBtn(container, t));
+                    }
+                });
+            }
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function createBtn(parent, teacherUsername) {
+            if(!teacherUsername) return;
+            const btn = document.createElement('button');
+            btn.className = 'teacher-btn';
+            btn.innerText = formatDisplayName(teacherUsername); // Εμφανίζει όμορφα το όνομα
+            btn.onclick = () => window.open(BASE_URL + teacherUsername, '_blank'); // Χρησιμοποιεί το πραγματικό username για το link
+            parent.appendChild(btn);
+        }
+
+        function closeModal() { document.getElementById('modal').style.display = 'none'; }
+        window.onclick = (e) => { if(e.target.className === 'modal') closeModal(); }
+
+        function resizeIframe() {
+            try {
+                if(window.frameElement) {
+                    const newHeight = document.body.scrollHeight + 30;
+                    window.frameElement.style.height = newHeight + 'px';
+                }
+            } catch(e) {
+                console.log("Resize blocked or not in iframe");
+            }
+        }
+
+        // Εκκίνηση της εφαρμογής (δεν χρειάζεται πλέον await loader)
+        initApp();
+    </script>
+</body>
+</html>
