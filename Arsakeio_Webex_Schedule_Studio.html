@@ -3,410 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Schedule Builder v4.1 (Unified - Not Taught Feature)</title>
+    <title>Schedule Builder v5.1</title>
     <style>
         :root { 
-            --primary-blue: #003366; 
-            --secondary-gold: #c5a059; 
-            --hover-blue: #e3f2fd; 
-            --border-color: #e0e0e0; 
-            --error-red: #d32f2f;
-            --success-green: #2e7d32;
-            --warning-orange: #f57c00;
-            --export-html-color: #7b1fa2; 
+            --primary-blue: #003366; --secondary-gold: #c5a059; --hover-blue: #e3f2fd; 
+            --border-color: #e0e0e0; --error-red: #d32f2f; --success-green: #2e7d32;
+            --warning-orange: #f57c00; --export-html-color: #7b1fa2; 
         }
-
         * { box-sizing: border-box; }
-
-        html, body {
-            margin: 0;
-            padding: 0;
-            height: auto; 
-            background: #eceff1; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-        }
-
-        body { 
-            padding: 10px;
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding-bottom: 100px; 
-        }
-
-        h2 { 
-            color: var(--primary-blue); 
-            text-transform: uppercase; 
-            margin: 10px 0 20px; 
-            text-align: center; 
-            font-size: 1.4rem;
-            letter-spacing: 1px;
-            border-bottom: 3px solid var(--secondary-gold);
-            padding-bottom: 5px;
-            display: inline-block;
-        }
-
-        #loading-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255,255,255,0.9); z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-        }
-        .loader {
-            border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-blue);
-            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;
-        }
+        html, body { margin: 0; padding: 0; height: auto; background: #eceff1; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+        body { padding: 10px; display: flex; flex-direction: column; align-items: center; padding-bottom: 100px; }
+        h2 { color: var(--primary-blue); text-transform: uppercase; margin: 10px 0 20px; text-align: center; font-size: 1.4rem; border-bottom: 3px solid var(--secondary-gold); padding-bottom: 5px; display: inline-block; }
+        #loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .loader { border: 5px solid #f3f3f3; border-top: 5px solid var(--primary-blue); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         #loading-text { margin-top: 15px; color: var(--primary-blue); font-weight: bold; }
-
-        .controls-area {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-            margin-bottom: 20px;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end; 
-            gap: 20px;
-            justify-content: center;
-            border-top: 4px solid var(--primary-blue);
-        }
-
-        .control-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            align-items: center;
-        }
-
-        .control-group label {
-            font-weight: bold;
-            color: var(--primary-blue);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-        }
-
+        .controls-area { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.08); margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px; justify-content: center; border-top: 4px solid var(--primary-blue); }
+        .control-group { display: flex; flex-direction: column; gap: 5px; align-items: center; }
+        .control-group label { font-weight: bold; color: var(--primary-blue); font-size: 0.9rem; text-transform: uppercase; }
         .select-row { display: flex; gap: 10px; }
-
-        .controls-area select {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 1rem;
-            min-width: 130px;
-            text-align: center;
-            background-color: #fff;
-        }
-
+        .controls-area select { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 1rem; min-width: 130px; text-align: center; background-color: #fff; }
         .vertical-sep { width: 1px; height: 50px; background-color: #ddd; margin: 0 10px; }
-
-        select {
-            width: 100%; min-width: 150px; padding: 8px;
-            border: 1px solid #ccc; border-radius: 4px;
-            background-color: #fff; cursor: pointer;
-        }
-        
+        select { width: 100%; min-width: 150px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; background-color: #fff; cursor: pointer; }
         select:disabled { background-color: #e0e0e0; color: #888; cursor: not-allowed; }
         select:focus { border-color: var(--primary-blue); outline: 2px solid var(--hover-blue); }
-
         .multi-selected { outline: 3px solid var(--warning-orange) !important; background-color: #fff3e0 !important; }
-
-        .no-teachers-warning {
-            flex-basis: 100%; color: var(--error-red); font-weight: bold; text-align: center;
-            padding: 10px; background: #ffebee; border: 1px solid var(--error-red);
-            border-radius: 4px; margin-top: 10px; display: none;
-        }
-
-        .validation-report {
-                width: 100%; max-width: 1200px; background: white; border-radius: 8px;
-                margin-bottom: 20px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-                border: 1px solid var(--border-color); overflow: hidden;
-        }
-
-        .validation-header {
-                display: flex; justify-content: space-between; align-items: center;
-                padding: 15px 20px; background: #fcfcfc; cursor: pointer;
-                transition: background 0.2s; border-bottom: 1px solid transparent;
-        }
-
+        .no-teachers-warning { flex-basis: 100%; color: var(--error-red); font-weight: bold; text-align: center; padding: 10px; background: #ffebee; border: 1px solid var(--error-red); border-radius: 4px; margin-top: 10px; display: none; }
+        .validation-report { width: 100%; max-width: 1200px; background: white; border-radius: 8px; margin-bottom: 20px; display: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid var(--border-color); overflow: hidden; }
+        .validation-header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: #fcfcfc; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid transparent; }
         .validation-header:hover { background: var(--hover-blue); }
         .validation-header.open { border-bottom: 1px solid var(--border-color); background: #fff; }
         .header-left { display: flex; align-items: center; gap: 15px; }
         .header-title { font-weight: bold; color: var(--primary-blue); font-size: 1.05rem; text-transform: uppercase; }
-
-        .score-badge {
-                padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold;
-                color: white; transition: all 0.3s;
-        }
+        .score-badge { padding: 4px 12px; border-radius: 20px; font-size: 0.9rem; font-weight: bold; color: white; transition: all 0.3s; }
         .score-badge.success { background-color: var(--success-green); }
         .score-badge.error { background-color: var(--error-red); }
-
         .chevron { width: 24px; height: 24px; fill: var(--primary-blue); transition: transform 0.3s ease; }
         .chevron.rotate { transform: rotate(180deg); }
-
         .validation-content { display: none; padding: 20px; background: white; animation: slideDown 0.3s ease-out; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
         .validation-grid { border-top: none; padding-top: 0; }
-        
-        .assignment-warning {
-            color: var(--error-red); font-weight: bold; margin-bottom: 15px; padding: 10px;
-            background: #ffebee; border-left: 5px solid var(--error-red); display: none;
-        }
-
-        .validation-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 10px; border-top: 1px solid #eee; padding-top: 15px;
-        }
-
-        .validation-item {
-            padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; display: flex;
-            justify-content: space-between; background: #f5f5f5;
-        }
+        .assignment-warning { color: var(--error-red); font-weight: bold; margin-bottom: 15px; padding: 10px; background: #ffebee; border-left: 5px solid var(--error-red); display: none; }
+        .validation-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px; border-top: 1px solid #eee; padding-top: 15px; }
+        .validation-item { padding: 8px 12px; border-radius: 4px; font-size: 0.9rem; display: flex; justify-content: space-between; background: #f5f5f5; }
         .validation-item.error { background-color: #fff5f5; color: var(--error-red); border-left: 4px solid var(--error-red); }
         .validation-item.success { background-color: #f1f8f1; color: var(--success-green); border-left: 4px solid var(--success-green); }
-
-        .card {
-            width: 100%; max-width: 1200px; background: white; border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden; display: flex;
-            flex-direction: column; margin-bottom: 30px; scroll-margin-top: 20px;
-        }
-
+        .card { width: 100%; max-width: 1200px; background: white; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); overflow: hidden; display: flex; flex-direction: column; margin-bottom: 30px; scroll-margin-top: 20px; }
         .card-header { background-color: var(--primary-blue); color: white; padding: 10px 15px; font-weight: bold; text-transform: uppercase; }
         .table-scroll-area { overflow: auto; max-height: 75vh; width: 100%; }
         .table-full-view { width: 100%; overflow-x: auto; }
-
         table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 800px; }
         th, td { border-bottom: 1px solid var(--border-color); border-right: 1px solid var(--border-color); padding: 6px; text-align: center; font-size: 0.9rem; }
-
         #schedule-table th { background: var(--primary-blue); color: white; position: sticky; top: 0; z-index: 20; }
         #schedule-table th:first-child { left: 0; z-index: 30; }
         #schedule-table td:first-child { position: sticky; left: 0; z-index: 15; background: #fcfcfc; font-weight: bold; white-space: nowrap;}
-
         #assignments-table th { background: #455a64; color: white; text-align: left; padding: 10px; }
         #assignments-table td { text-align: left; padding: 10px 8px; vertical-align: middle; }
         #assignments-body tr:nth-child(even) { background-color: #f2f2f5; }
-
         .missing-assignment { border: 2px solid var(--error-red) !important; background-color: #fff5f5; }
         .teacher-mismatch { color: var(--error-red) !important; font-weight: bold; background-color: #fff0f0; }
-
         .teacher-row-container { display: flex; flex-direction: column; gap: 5px; }
         .teacher-input-group { display: flex; gap: 5px; align-items: center; }
-        
-        .btn-add, .btn-remove {
-            width: 30px; height: 30px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;
-            display: flex; align-items: center; justify-content: center;
-        }
+        .btn-add, .btn-remove { width: 30px; height: 30px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .btn-add { background-color: #28a745; color: white; }
         .btn-remove { background-color: #dc3545; color: white; }
-
-        .btn-not-taught {
-            background-color: #6c757d; color: white; border: none; padding: 6px 12px; 
-            border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; 
-            white-space: nowrap; height: fit-content; margin-top: 2px;
-        }
+        .btn-not-taught { background-color: #6c757d; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; font-weight: bold; white-space: nowrap; height: fit-content; margin-top: 2px; }
         .btn-not-taught:hover { background-color: #5a6268; }
         .not-taught-row td { opacity: 0.4; }
         .not-taught-row td:first-child { text-decoration: line-through; font-style: italic; }
         .assignment-actions-wrapper { display: flex; align-items: flex-start; gap: 10px; }
-
-        .main-footer {
-            position: fixed; bottom: 0; left: 0; width: 100%; background: white;
-            border-top: 1px solid #ddd; padding: 10px; display: flex; justify-content: center;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100;
-        }
-
+        .main-footer { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid #ddd; padding: 10px; display: flex; justify-content: center; box-shadow: 0 -2px 10px rgba(0,0,0,0.1); z-index: 100; }
         .footer-inner { width: 100%; max-width: 1200px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
         .footer-status-area { display: flex; gap: 15px; align-items: center; }
-        
-        .status-box {
-            background: #757575; color: white; padding: 8px 16px; border-radius: 8px;
-            font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            transition: all 0.2s ease; display: flex; align-items: center; gap: 8px;
-            cursor: pointer; user-select: none;
-        }
-        
+        .status-box { background: #757575; color: white; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: all 0.2s ease; display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; }
         .status-box:hover { transform: translateY(-2px); filter: brightness(1.15); }
         .status-box.success { background-color: var(--success-green); }
         .status-box.warning { background-color: var(--warning-orange); }
         .status-box.error { background-color: var(--error-red); }
-        
         .footer-actions-area { display: flex; gap: 10px; align-items: center; }
-        
-        .btn-footer {
-            color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 50px; 
-            cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: all 0.2s;
-        }
-
+        .btn-footer { color: white; border: none; padding: 10px 20px; font-size: 0.9rem; border-radius: 50px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.15); transition: all 0.2s; }
         .btn-footer:hover { transform: translateY(-2px); filter: brightness(1.15); }
         .export-btn { background-color: var(--primary-blue); }
         .export-html-btn { background-color: var(--export-html-color); }
         .import-btn { background-color: #0277bd; }
         .reset-btn { background-color: #c62828; }
         .btn-footer svg { width: 18px; height: 18px; fill: currentColor; }
-        
         .save-indicator { position: absolute; right: 20px; top: -40px; background: #333; color: #fff; padding: 5px 10px; border-radius: 4px; font-size: 0.8rem; opacity: 0; pointer-events: none; transition: opacity 0.5s; }
-        
-        @media screen and (max-width: 800px) {
-            .footer-inner { justify-content: center; flex-direction: column; gap: 10px; }
-            .controls-area { flex-direction: column; align-items: center; }
-            .vertical-sep { width: 100%; height: 1px; margin: 10px 0; }
-        }
-
+        @media screen and (max-width: 800px) { .footer-inner { justify-content: center; flex-direction: column; gap: 10px; } .controls-area { flex-direction: column; align-items: center; } .vertical-sep { width: 100%; height: 1px; margin: 10px 0; } }
         .info-tip-box { background-color: #e3f2fd; color: var(--primary-blue); padding: 10px 20px; border-bottom: 1px solid #bbdefb; display: none; justify-content: space-between; align-items: center; font-size: 0.9rem; animation: fadeIn 0.5s; }
         .tip-content { display: flex; align-items: center; gap: 10px; }
         .tip-close-btn { background: none; border: none; font-size: 1.4rem; color: #003366; cursor: pointer; padding: 0 5px; line-height: 1; opacity: 0.6; transition: opacity 0.2s; }
         .tip-close-btn:hover { opacity: 1; color: var(--error-red); }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    
         td, th, .control-group, .teacher-input-group, .validation-header { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
     </style>
 </head>
 <body>
-
-    <div id="loading-overlay">
-        <div class="loader"></div>
-        <div id="loading-text">Φόρτωση δεδομένων...</div>
-    </div>
-
+    <div id="loading-overlay"><div class="loader"></div><div id="loading-text">Φόρτωση δεδομένων...</div></div>
     <h2>ΔΗΜΙΟΥΡΓΙΑ ΠΡΟΓΡΑΜΜΑΤΟΣ</h2>
-
     <div class="controls-area">
         <div class="control-group">
             <label>Τοποθεσία</label>
             <div class="select-row">
-                <select id="region-select" onfocus="this.setAttribute('data-prev', this.value)" onchange="handleRegionChange(this)">
-                    <option value="" disabled selected>Περιοχή</option>
-                </select>
-                <select id="school-select" onfocus="this.setAttribute('data-prev', this.value)" onchange="handleSchoolChange(this)" disabled>
-                    <option value="" disabled selected>Σχολείο</option>
-                </select>
+                <select id="region-select" onfocus="this.setAttribute('data-prev', this.value)" onchange="handleRegionChange(this)"><option value="" disabled selected>Περιοχή</option></select>
+                <select id="school-select" onfocus="this.setAttribute('data-prev', this.value)" onchange="handleSchoolChange(this)" disabled><option value="" disabled selected>Σχολείο</option></select>
             </div>
         </div>
-
         <div class="vertical-sep"></div>
-
         <div class="control-group">
             <label>Τάξη / Τμήμα</label>
             <div class="select-row">
-                <select id="grade-select" onchange="handleMainChange()">
-                    <option value="" disabled selected>Τάξη</option>
-                    <option value="Α">Α</option>
-                    <option value="Β">Β</option>
-                    <option value="Γ">Γ</option>
-                    <option value="Δ">Δ</option>
-                    <option value="Ε">Ε</option>
-                    <option value="ΣΤ">ΣΤ</option>
-                </select>
-                <select id="section-select" onchange="handleMainChange()">
-                    <option value="" disabled selected>Τμήμα</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                </select>
+                <select id="grade-select" onchange="handleMainChange()"><option value="" disabled selected>Τάξη</option><option value="Α">Α</option><option value="Β">Β</option><option value="Γ">Γ</option><option value="Δ">Δ</option><option value="Ε">Ε</option><option value="ΣΤ">ΣΤ</option></select>
+                <select id="section-select" onchange="handleMainChange()"><option value="" disabled selected>Τμήμα</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select>
             </div>
         </div>
-        
-        <div id="no-teachers-msg" class="no-teachers-warning">
-            Δεν βρέθηκαν εκπαιδευτικοί για το επιλεγμένο σχολείο στο Raw Data. <br> Η καταχώρηση μαθημάτων απενεργοποιήθηκε.
-        </div>
+        <div id="no-teachers-msg" class="no-teachers-warning">Δεν βρέθηκαν εκπαιδευτικοί για το επιλεγμένο σχολείο στο Raw Data. <br> Η καταχώρηση μαθημάτων απενεργοποιήθηκε.</div>
     </div>
-
     <div id="validation-report" class="validation-report">
         <div class="validation-header" onclick="toggleValidation()">
-            <div class="header-left">
-                <span class="header-title" style="font-size: 0.95rem;">ΜΑΘΗΜΑΤΑ ΜΕ ΟΡΘΗ ΔΗΛΩΣΗ ΩΡΩΝ:</span>
-                <span id="validation-score-badge" class="score-badge error">- / -</span>
-            </div>
-            <svg id="validation-arrow" class="chevron" viewBox="0 0 24 24">
-                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
-            </svg>
+            <div class="header-left"><span class="header-title" style="font-size: 0.95rem;">ΜΑΘΗΜΑΤΑ ΜΕ ΟΡΘΗ ΔΗΛΩΣΗ ΩΡΩΝ:</span><span id="validation-score-badge" class="score-badge error">- / -</span></div>
+            <svg id="validation-arrow" class="chevron" viewBox="0 0 24 24"><path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/></svg>
         </div>
-
         <div id="multi-select-tip" class="info-tip-box">
-            <div class="tip-content">
-                <span style="font-size: 1.2rem;">💡</span>
-                <span><strong>Tip:</strong> Μπορείτε να επιλέξετε πολλά πεδία ταυτόχρονα κρατώντας πατημένο το πλήκτρο <strong>CTRL</strong> + <strong>Click</strong>.</span>
-            </div>
+            <div class="tip-content"><span style="font-size: 1.2rem;">💡</span><span><strong>Tip:</strong> Μπορείτε να επιλέξετε πολλά πεδία ταυτόχρονα κρατώντας πατημένο το πλήκτρο <strong>CTRL</strong> + <strong>Click</strong>.</span></div>
             <button class="tip-close-btn" onclick="dismissTip()" title="Κλείσιμο και να μην εμφανιστεί ξανά">×</button>
         </div>
-
         <div id="validation-content" class="validation-content">
             <div id="assignment-warning" class="assignment-warning">⚠️ ΠΡΟΣΟΧΗ: Υπάρχουν μαθήματα χωρίς ανάθεση εκπαιδευτικού!</div>
             <div style="margin-bottom: 15px; color: #555;">Λεπτομέρειες Ωρών ανά Μάθημα:</div>
             <div id="validation-grid" class="validation-grid"></div>
         </div>
     </div>
-
     <div id="card-schedule" class="card">
         <div class="card-header">ΩΡΟΛΟΓΙΟ ΠΡΟΓΡΑΜΜΑ</div>
-        <div class="table-scroll-area">
-            <table id="schedule-table">
-                <thead><tr id="header-row"></tr></thead>
-                <tbody id="table-body"></tbody>
-            </table>
-        </div>
+        <div class="table-scroll-area"><table id="schedule-table"><thead><tr id="header-row"></tr></thead><tbody id="table-body"></tbody></table></div>
     </div>
-
     <div id="card-assignments" class="card">
         <div class="card-header">ΑΝΑΘΕΣΕΙΣ ΕΚΠΑΙΔΕΥΤΙΚΩΝ</div>
-        <div class="table-full-view">
-            <table id="assignments-table">
-                <thead>
-                    <tr>
-                        <th style="width: 40%;">Μάθημα</th>
-                        <th style="width: 60%;">Εκπαιδευτικός</th>
-                    </tr>
-                </thead>
-                <tbody id="assignments-body"></tbody>
-            </table>
-        </div>
+        <div class="table-full-view"><table id="assignments-table"><thead><tr><th style="width: 40%;">Μάθημα</th><th style="width: 60%;">Εκπαιδευτικός</th></tr></thead><tbody id="assignments-body"></tbody></table></div>
     </div>
-
     <div class="main-footer">
         <div class="footer-inner">
             <div class="save-indicator" id="save-msg">Αποθηκεύτηκε</div>
-            
             <div class="footer-status-area">
-                <div id="status-hours" class="status-box warning" onclick="document.getElementById('card-schedule').scrollIntoView({behavior: 'smooth'})">
-                    <span>ΩΡΕΣ: 0/40</span>
-                </div>
-                <div id="status-subjects" class="status-box warning" onclick="document.getElementById('validation-report').scrollIntoView({behavior: 'smooth'})">
-                    <span>ΜΑΘΗΜΑΤΑ: -</span>
-                </div>
-                <div id="status-assign" class="status-box warning" onclick="document.getElementById('card-assignments').scrollIntoView({behavior: 'smooth'})">
-                    <span>ΑΝΑΘΕΣΕΙΣ: 0/0</span>
-                </div>
+                <div id="status-hours" class="status-box warning" onclick="document.getElementById('card-schedule').scrollIntoView({behavior: 'smooth'})"><span>ΩΡΕΣ: 0/40</span></div>
+                <div id="status-subjects" class="status-box warning" onclick="document.getElementById('validation-report').scrollIntoView({behavior: 'smooth'})"><span>ΜΑΘΗΜΑΤΑ: -</span></div>
+                <div id="status-assign" class="status-box warning" onclick="document.getElementById('card-assignments').scrollIntoView({behavior: 'smooth'})"><span>ΑΝΑΘΕΣΕΙΣ: 0/0</span></div>
             </div>
-
             <div class="footer-actions-area">
-                <button class="btn-footer reset-btn" onclick="clearAllData()">
-                    <svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-                    ΚΑΘΑΡΙΣΜΟΣ
-                </button>
+                <button class="btn-footer reset-btn" onclick="clearAllData()"><svg viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>ΚΑΘΑΡΙΣΜΟΣ</button>
                 <input type="file" id="csv-input" accept=".csv, .txt" style="display: none;" onchange="handleFileSelect(event)">
-                <button class="btn-footer import-btn" onclick="triggerImport()">
-                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" transform="rotate(180 12 12)"/></svg>
-                    ΕΙΣΑΓΩΓΗ
-                </button>
-                <button class="btn-footer export-btn" onclick="exportToCSV()">
-                    <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                    ΕΞΑΓΩΓΗ CSV
-                </button>
-                <button class="btn-footer export-html-btn" onclick="exportToHTML()">
-                    <svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>
-                    ΕΞΑΓΩΓΗ HTML
-                </button>
+                <button class="btn-footer import-btn" onclick="triggerImport()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" transform="rotate(180 12 12)"/></svg>ΕΙΣΑΓΩΓΗ</button>
+                <button class="btn-footer export-btn" onclick="exportToCSV()"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>ΕΞΑΓΩΓΗ CSV</button>
+                <button class="btn-footer export-html-btn" onclick="exportToHTML()"><svg viewBox="0 0 24 24"><path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z"/></svg>ΕΞΑΓΩΓΗ HTML</button>
             </div>
         </div>
     </div>
     
     <script>
-        // ==========================================
-        // DATA LOADER & CONFIG
-        // ==========================================
         const RAW_DAYS = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ`;
         const RAW_TIMES = `8:10-8:55\n9:00-9:45\n10:00-10:45\n10:50-11:35\n11:45-12:25\n12:30-13:10\n13:25-14:05\n14:10-14:50`;
         const RAW_SUBJECTS = `ΑΓΓΛΙΚΑ\nΑΓΩΓΗ ΥΓΕΙΑΣ\nΒ' ΞΕΝΗ ΓΛΩΣΣΑ\nΓΕΩΓΡΑΦΙΑ\nΓΥΜΝΑΣΤΙΚΗ\nΕΛΛΗΝΙΚΑ\nΕΛΛΗΝΙΚΗ ΠΑΡΑΔΟΣΗ\nΕΡΓ. ΔΕΞ.\nΘΕΑΤΡΙΚΗ ΑΓΩΓΗ\nΘΡΗΣΚΕΥΤΙΚΑ\nΙΣΤΟΡΙΑ\nΚΑΛΛΙΤΕΧΝΙΚΑ\nΚΠΑ\nΜΑΘΗΜΑΤΙΚΑ\nΜΕΛΕΤΗ ΠΕΡΙΒΑΛΛΟΝΤΟΣ\nΜΟΥΣΙΚΗ\nΜΣ/ΔΣ\nΠΛΗΡΟΦΟΡΙΚΗ\nΦΙΛΑΝΑΓΝΩΣΙΑ\nΦΥΣΙΚΗ\nSHTEAM\nSOCIAL STUDIES`;
@@ -415,7 +169,6 @@
 
         const PRIMARY_DATA_URL = "https://tethragon.github.io/webex-links/teachers_and_mappings.js";
         const FALLBACK_DATA_URL = "https://tethragon.github.io/webex-links/teachers_and_mappings.js"; 
-        
         const PRIMARY_TEMPLATE_URL = "https://tethragon.github.io/webex-links/webex-links_4all_v3.1_TEMPLATE.html"; 
         const FALLBACK_TEMPLATE_URL = "https://tethragon.github.io/webex-links/webex-links_4all_v3.1_TEMPLATE.html"; 
 
@@ -452,18 +205,15 @@
         }
 
         const DEBUG_DATA_CSV = `ΩΡΑ,ΔΕΥΤΕΡΑ,ΤΡΙΤΗ,ΤΕΤΑΡΤΗ,ΠΕΜΠΤΗ,ΠΑΡΑΣΚΕΥΗ\n8:10-8:55,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΑΓΓΛΙΚΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΜΑΘΗΜΑΤΙΚΑ\n9:00-9:45,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΕΛΛΗΝΙΚΑ,ΓΥΜΝΑΣΤΙΚΗ,ΕΛΛΗΝΙΚΑ\n10:00-10:45,ΜΑΘΗΜΑΤΙΚΑ,ΠΛΗΡΟΦΟΡΙΚΗ,ΕΛΛΗΝΙΚΑ,ΜΑΘΗΜΑΤΙΚΑ,ΕΡΓ. ΔΕΞ.\n10:50-11:35,ΓΥΜΝΑΣΤΙΚΗ,ΓΥΜΝΑΣΤΙΚΗ,ΜΑΘΗΜΑΤΙΚΑ,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΛΙΚΑ\n11:45-12:25,ΦΥΣΙΚΗ,ΙΣΤΟΡΙΑ,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΦΥΣΙΚΗ\n12:30-13:10,ΑΓΓΛΙΚΑ,ΑΓΓΛΙΚΑ,ΚΠΑ,ΑΓΓΛΙΚΑ,ΜΣ/ΔΣ\n13:25-14:05,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΜΑΘΗΜΑΤΙΚΑ,ΜΟΥΣΙΚΗ,ΓΕΩΓΡΑΦΙΑ,ΙΣΤΟΡΙΑ\n14:10-14:50,Β' ΞΕΝΗ ΓΛΩΣΣΑ,ΦΥΣΙΚΗ,ΕΡΓ. ΔΕΞ.,ΘΡΗΣΚΕΥΤΙΚΑ,SOCIAL STUDIES`;
-        const DEBUG_ASSIGNMENTS_CSV = `ΨΥΧΙΚΟ,2,ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ\nΨΥΧΙΚΟ,2,ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ\nΨΥΧΙΚΟ,2,ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ\nΨΥΧΙΚΟ,2,ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ`;
+        // Νέα μορφή Debug: Περιέχει Όνομα,Username
+        const DEBUG_ASSIGNMENTS_CSV = `ΨΥΧΙΚΟ,2,ΣΤ1,SOCIAL STUDIES,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,dimitropoulou.d\nΨΥΧΙΚΟ,2,ΣΤ1,ΑΓΓΛΙΚΑ,ΔΗΜΗΤΡΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,dimitropoulou.d,ΚΥΡΙΑΚΗ ΚΑΤΕΡΙΝΑ,kiriaki.k,ΜΗΛΙΟΠΟΥΛΟΥ ΖΩΗ,miliopoulou.z\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΑΛΛΙΚΑ,ΑΛΕΞΟΠΟΥΛΟΥ ΕΙΡΗΝΗ,alexopoulou.e,ΒΕΝΑΡΔΟΥ ΧΡΙΣΤΙΝΑ,venardou.ch\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΡΜΑΝΙΚΑ,ΤΣΙΡΟΥ ΟΥΡΑΝΙΑ,tsirou.o\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΕΩΓΡΑΦΙΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΓΥΜΝΑΣΤΙΚΗ,ΜΠΑΡΛΑΣ ΝΙΚΟΛΑΟΣ,barlas.n\nΨΥΧΙΚΟ,2,ΣΤ1,ΕΛΛΗΝΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΕΡΓ. ΔΕΞ.,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΘΕΑΤΡΙΚΗ ΑΓΩΓΗ,ΚΟΝΤΟΥ ΑΝΘΗ,kontou.a\nΨΥΧΙΚΟ,2,ΣΤ1,ΘΡΗΣΚΕΥΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΙΣΤΟΡΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ,giannaki.an\nΨΥΧΙΚΟ,2,ΣΤ1,ΚΑΛΛΙΤΕΧΝΙΚΑ,ΑΓΓΕΛΟΥ ΤΖΩΡΤΖΙΝΑ,aggelou.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΚΠΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ,giannaki.an\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΑΘΗΜΑΤΙΚΑ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΟΥΣΙΚΗ,ΒΟΤΑΝΟΠΟΥΛΟΥ ΕΥΓΕΝΙΑ,votanopoulou.e\nΨΥΧΙΚΟ,2,ΣΤ1,ΜΣ/ΔΣ,ΠΕΤΡΑΚΗΣ ΓΕΩΡΓΙΟΣ,petrakis.g\nΨΥΧΙΚΟ,2,ΣΤ1,ΠΛΗΡΟΦΟΡΙΚΗ,ΑΝΔΡΙΟΠΟΥΛΟΥ ΔΗΜΗΤΡΑ,andriopoulou_d\nΨΥΧΙΚΟ,2,ΣΤ1,ΦΙΛΑΝΑΓΝΩΣΙΑ,ΓΙΑΝΝΑΚΗ ΑΝΝΑ,giannaki.an\nΨΥΧΙΚΟ,2,ΣΤ1,ΦΥΣΙΚΗ,ΧΩΡΙΑΝΟΠΟΥΛΟΣ ΚΩΝΣΤΑΝΤΙΝΟΣ,chorianopoulos.k`;
 
         const TARGET_TOTAL_HOURS = 40;
         const MULTI_TEACHER_SUBJECTS = ["ΑΓΓΛΙΚΑ", "ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"];
         const OPTIONAL_SUBJECTS = ["ΓΑΛΛΙΚΑ", "ΓΕΡΜΑΝΙΚΑ"]; 
 
-        let schoolStructure = {}; 
-        let rulesMap = {}; 
-        let assignmentsState = {}; 
-        let teachersBySchool = {}; 
-        let specialtiesBySchool = {}; 
-        let restrictedSubjects = new Set(); 
+        let schoolStructure = {}; let rulesMap = {}; let assignmentsState = {}; 
+        let teachersBySchool = {}; let specialtiesBySchool = {}; let restrictedSubjects = new Set(); 
 
         function parseList(text) { if (!text) return []; return text.trim().split('\n').map(s => s.trim()).filter(s => s !== ""); }
 
@@ -489,27 +239,28 @@
             const lines = parseList(window.RAW_TEACHERS);
             lines.forEach(line => {
                 const parts = line.split(',');
-                if (parts.length >= 3) {
-                    const region = parts[0].trim(); const school = parts[1].trim(); const name = parts[2].trim();
+                if (parts.length >= 4) {
+                    const region = parts[0].trim(); const school = parts[1].trim(); const name = parts[2].trim(); const username = parts[3].trim();
                     const key = `${region}|${school}`;
                     if (!teachersBySchool[key]) teachersBySchool[key] = [];
-                    teachersBySchool[key].push(name);
+                    teachersBySchool[key].push({ name: name, username: username });
                 }
             });
-            for (const key in teachersBySchool) { teachersBySchool[key].sort((a, b) => a.localeCompare(b, 'el')); }
+            for (const key in teachersBySchool) { teachersBySchool[key].sort((a, b) => a.name.localeCompare(b.name, 'el')); }
         }
 
         function parseTeacherMappings() {
             const lines = parseList(window.RAW_TEACHER_MAPPINGS);
             lines.forEach(line => {
                 const parts = line.split(',');
-                if (parts.length >= 4) {
-                    const region = parts[0].trim(); const school = parts[1].trim(); const teacher = parts[2].trim(); const subject = parts[3].trim();
-                    const key = `${region}|${school}`;
-                    if (!specialtiesBySchool[key]) specialtiesBySchool[key] = {};
-                    if (!specialtiesBySchool[key][teacher]) specialtiesBySchool[key][teacher] = new Set();
-                    specialtiesBySchool[key][teacher].add(subject); restrictedSubjects.add(subject); 
-                }
+                let region, school, username, subject;
+                if (parts.length >= 5) { region = parts[0].trim(); school = parts[1].trim(); subject = parts[3].trim(); username = parts[4].trim(); } 
+                else if (parts.length === 4) { region = parts[0].trim(); school = parts[1].trim(); username = parts[2].trim(); subject = parts[3].trim(); } 
+                else { return; }
+                const key = `${region}|${school}`;
+                if (!specialtiesBySchool[key]) specialtiesBySchool[key] = {};
+                if (!specialtiesBySchool[key][username]) specialtiesBySchool[key][username] = new Set();
+                specialtiesBySchool[key][username].add(subject); restrictedSubjects.add(subject); 
             });
         }
 
@@ -598,6 +349,21 @@
                     if (e.ctrlKey || e.metaKey) { e.preventDefault(); this.classList.toggle('multi-selected'); setTimeout(() => this.blur(), 0); }
                 });
             }
+            return select;
+        }
+
+        function createTeacherDropdown(teacherList, selectedUsername) {
+            const select = document.createElement('select');
+            select.className = "teacher-select";
+            const def = document.createElement('option'); def.value = ""; def.text = "-"; def.style.color="#999";
+            select.appendChild(def);
+            teacherList.forEach(t => {
+                const o = document.createElement('option');
+                o.value = t.username; 
+                o.text = `${t.name} (${t.username})`; // Ο Admin βλέπει και τα δύο
+                select.appendChild(o);
+            });
+            if (selectedUsername) select.value = selectedUsername;
             return select;
         }
 
@@ -774,10 +540,7 @@
                     const btnRestore = document.createElement('button');
                     btnRestore.className = 'btn-not-taught';
                     btnRestore.innerHTML = '🔄 Επαναφορά (Διδάσκεται)';
-                    btnRestore.onclick = function() {
-                        assignmentsState[subject] = [""];
-                        handleMainChange();
-                    };
+                    btnRestore.onclick = function() { assignmentsState[subject] = [""]; handleMainChange(); };
                     cellTeacher.appendChild(btnRestore);
                     row.classList.add('not-taught-row');
                 } else {
@@ -789,40 +552,23 @@
                         if (!Array.isArray(currentValues) || currentValues.length === 0) currentValues = [""];
                         currentValues.forEach((val, index) => { addTeacherSelectRow(container, teacherList, subject, val, index === 0); });
                         wrapperDiv.appendChild(container);
-
                         if (OPTIONAL_SUBJECTS.includes(subject)) {
-                            const btnNotTaught = document.createElement('button');
-                            btnNotTaught.className = 'btn-not-taught';
-                            btnNotTaught.innerHTML = '❌ Δεν διδάσκεται';
-                            btnNotTaught.title = 'Επιλέξτε αν η τάξη δεν διδάσκεται αυτό το μάθημα';
-                            btnNotTaught.onclick = function() {
-                                if (confirm(`Ναι σίγουρα θέλετε να σημειώσετε τα ${subject} ως "Δεν διδάσκεται";`)) {
-                                    assignmentsState[subject] = "NOT_TAUGHT";
-                                    handleMainChange();
-                                }
-                            };
+                            const btnNotTaught = document.createElement('button'); btnNotTaught.className = 'btn-not-taught'; btnNotTaught.innerHTML = '❌ Δεν διδάσκεται';
+                            btnNotTaught.onclick = function() { if (confirm(`Ναι σίγουρα θέλετε να σημειώσετε τα ${subject} ως "Δεν διδάσκεται";`)) { assignmentsState[subject] = "NOT_TAUGHT"; handleMainChange(); } };
                             wrapperDiv.appendChild(btnNotTaught);
                         }
                         cellTeacher.appendChild(wrapperDiv);
                     } else {
                         const wrapperDiv = document.createElement('div'); wrapperDiv.className = 'assignment-actions-wrapper';
-                        const select = createDropdown(teacherList, "teacher-select");
+                        const currentVal = assignmentsState[subject] || "";
+                        const select = createTeacherDropdown(teacherList, currentVal);
                         select.setAttribute('data-subject', subject);
-                        if (assignmentsState[subject] && typeof assignmentsState[subject] === 'string') select.value = assignmentsState[subject];
                         checkTeacherSpecialty(select, subject, select.value);
                         select.onchange = function() { handleTeacherChange(this); };
                         wrapperDiv.appendChild(select);
-
                         if (OPTIONAL_SUBJECTS.includes(subject)) {
-                            const btnNotTaught = document.createElement('button');
-                            btnNotTaught.className = 'btn-not-taught';
-                            btnNotTaught.innerHTML = '❌ Δεν διδάσκεται';
-                            btnNotTaught.onclick = function() {
-                                if (confirm(`Ναι σίγουρα θέλετε να σημειώσετε τα ${subject} ως "Δεν διδάσκεται";`)) {
-                                    assignmentsState[subject] = "NOT_TAUGHT";
-                                    handleMainChange();
-                                }
-                            };
+                            const btnNotTaught = document.createElement('button'); btnNotTaught.className = 'btn-not-taught'; btnNotTaught.innerHTML = '❌ Δεν διδάσκεται';
+                            btnNotTaught.onclick = function() { if (confirm(`Ναι σίγουρα θέλετε να σημειώσετε τα ${subject} ως "Δεν διδάσκεται";`)) { assignmentsState[subject] = "NOT_TAUGHT"; handleMainChange(); } };
                             wrapperDiv.appendChild(btnNotTaught);
                         }
                         cellTeacher.appendChild(wrapperDiv);
@@ -833,38 +579,22 @@
         }
 
         function addTeacherSelectRow(container, teacherList, subject, value, isFirst) {
-            const wrapper = document.createElement('div'); 
-            wrapper.className = 'teacher-input-group';
-            const select = createDropdown(teacherList, "teacher-select");
+            const wrapper = document.createElement('div'); wrapper.className = 'teacher-input-group';
+            const select = createTeacherDropdown(teacherList, value);
             select.setAttribute('data-subject', subject); 
-            select.value = value || "";
             checkTeacherSpecialty(select, subject, select.value);
             select.onchange = function() { handleTeacherChange(this); };
             wrapper.appendChild(select);
             if (isFirst) {
-                const btnAdd = document.createElement('button'); 
-                btnAdd.className = 'btn-add'; 
-                btnAdd.innerText = '+';
-                btnAdd.onclick = function() { 
-                    addTeacherSelectRow(container, teacherList, subject, "", false); 
-                    saveMultiTeacherState(subject, container); 
-                    validateAssignments(); 
-                    saveToLocal(); 
-                };
+                const btnAdd = document.createElement('button'); btnAdd.className = 'btn-add'; btnAdd.innerText = '+';
+                btnAdd.onclick = function() { addTeacherSelectRow(container, teacherList, subject, "", false); saveMultiTeacherState(subject, container); validateAssignments(); saveToLocal(); };
                 wrapper.appendChild(btnAdd);
             } else {
-                const btnRemove = document.createElement('button'); 
-                btnRemove.className = 'btn-remove'; 
-                btnRemove.innerText = 'x';
+                const btnRemove = document.createElement('button'); btnRemove.className = 'btn-remove'; btnRemove.innerText = 'x';
                 btnRemove.onclick = function() { 
                     const teacherName = select.value;
-                    if (teacherName && teacherName.trim() !== "") { 
-                        if (!confirm(`Θέλετε να διαγράψετε την ανάθεση: ${teacherName};`)) return; 
-                    }
-                    container.removeChild(wrapper); 
-                    saveMultiTeacherState(subject, container); 
-                    validateAssignments(); 
-                    saveToLocal(); 
+                    if (teacherName && teacherName.trim() !== "") { if (!confirm(`Θέλετε να διαγράψετε την ανάθεση: ${teacherName};`)) return; }
+                    container.removeChild(wrapper); saveMultiTeacherState(subject, container); validateAssignments(); saveToLocal(); 
                 };
                 wrapper.appendChild(btnRemove);
             }
@@ -876,13 +606,13 @@
             assignmentsState[subject] = values;
         }
 
-        function checkTeacherSpecialty(selectElement, subject, teacherName) {
-            if (!teacherName) { selectElement.classList.remove('teacher-mismatch'); return; }
+        function checkTeacherSpecialty(selectElement, subject, username) {
+            if (!username) { selectElement.classList.remove('teacher-mismatch'); return; }
             const region = document.getElementById('region-select').value; const school = document.getElementById('school-select').value;
             const key = `${region}|${school}`;
             if (!specialtiesBySchool[key] || Object.keys(specialtiesBySchool[key]).length === 0) return;
             let isError = false;
-            if (specialtiesBySchool[key][teacherName]) { if (!specialtiesBySchool[key][teacherName].has(subject)) isError = true; } 
+            if (specialtiesBySchool[key][username]) { if (!specialtiesBySchool[key][username].has(subject)) isError = true; } 
             else { if (restrictedSubjects.has(subject)) isError = true; }
             if (isError) selectElement.classList.add('teacher-mismatch'); else selectElement.classList.remove('teacher-mismatch');
         }
@@ -894,7 +624,6 @@
             assignRows.forEach(row => {
                 const subject = row.cells[0].innerText;
                 if (assignmentsState[subject] === "NOT_TAUGHT") return; 
-                
                 totalSubjects++;
                 let hasTeacher = false;
                 const selects = row.querySelectorAll('select');
@@ -918,11 +647,14 @@
             }
             const assignLines = parseList(DEBUG_ASSIGNMENTS_CSV);
             assignLines.forEach(line => {
-                const parts = line.split(','); if (parts.length >= 5) {
+                const parts = line.split(','); if (parts.length >= 6) { // Τώρα περιμένουμε τουλάχιστον 6 στήλες
                     const r = parts[0].trim(); const s = parts[1].trim();
                     if (r === 'ΨΥΧΙΚΟ' && s === '2') {
-                        const subj = parts[3].trim(); const teachers = parts.slice(4).map(t => t.trim());
-                        if (teachers.length > 1) assignmentsState[subj] = teachers; else assignmentsState[subj] = teachers[0];
+                        const subj = parts[3].trim(); 
+                        // Παίρνουμε μόνο τα usernames (ζειγάρια 5η, 7η κλπ στήλη)
+                        const teachers = [];
+                        for(let i=5; i<parts.length; i+=2) { if(parts[i]) teachers.push(parts[i].trim()); }
+                        if (teachers.length > 1) assignmentsState[subj] = teachers; else if (teachers.length === 1) assignmentsState[subj] = teachers[0];
                     }
                 }
             });
@@ -963,8 +695,11 @@
                 } else if (!isTime && rowValues.length >= 5) {
                     const r = rowValues[0];
                     if (schoolStructure[r]) { 
-                        const subj = rowValues[3]; const teachers = rowValues.slice(4);
-                        if (teachers.length > 1) assignmentsState[subj] = teachers; else assignmentsState[subj] = teachers[0];
+                        const subj = rowValues[3]; 
+                        // Διάβασμα Ζευγαριών (Όνομα, Username) - κρατάμε μόνο το Username
+                        const teachers = [];
+                        for(let j=5; j<rowValues.length; j+=2) { if(rowValues[j]) teachers.push(rowValues[j]); }
+                        if (teachers.length > 1) assignmentsState[subj] = teachers; else if (teachers.length === 1) assignmentsState[subj] = teachers[0];
                     }
                 }
             }
@@ -1031,14 +766,16 @@
             const subjOK = document.getElementById('status-subjects').classList.contains('success');
             const assignOK = document.getElementById('status-assign').classList.contains('success');
             const isComplete = hoursOK && subjOK && assignOK;
-            let teacherName = ""; let greekTeacher = assignmentsState["ΕΛΛΗΝΙΚΑ"];
-            if (Array.isArray(greekTeacher) && greekTeacher.length > 0) teacherName = greekTeacher[0];
-            else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherName = greekTeacher;
-            if (teacherName) { const nameParts = teacherName.split(' '); if (nameParts.length > 0) teacherName = nameParts[0]; }
+            
+            let teacherUsername = ""; let greekTeacher = assignmentsState["ΕΛΛΗΝΙΚΑ"];
+            if (Array.isArray(greekTeacher) && greekTeacher.length > 0) teacherUsername = greekTeacher[0];
+            else if (typeof greekTeacher === 'string' && greekTeacher.trim() !== "") teacherUsername = greekTeacher;
+            
             const now = new Date();
             const timestamp = now.getFullYear() + String(now.getMonth() + 1).padStart(2, '0') + String(now.getDate()).padStart(2, '0') + '_' + String(now.getHours()).padStart(2, '0') + String(now.getMinutes()).padStart(2, '0') + String(now.getSeconds()).padStart(2, '0');
             let baseFileName = `${region}_${school}_${grade}${section}_schedule`;
-            if (teacherName) baseFileName = `${region}_${school}_${grade}${section}_${teacherName}_schedule`;
+            if (teacherUsername && teacherUsername !== "NOT_TAUGHT") baseFileName = `${region}_${school}_${grade}${section}_${teacherUsername}_schedule`;
+            
             const className = `${grade}${section}`;
             let csvContent = ""; 
             if (!isComplete) {
@@ -1058,11 +795,23 @@
             assignRows.forEach(r => {
                 const subject = r.cells[0].innerText; 
                 if (assignmentsState[subject] === "NOT_TAUGHT") return; 
-                let teachers = [];
-                r.querySelectorAll('select').forEach(sel => { if (sel.value) teachers.push(sel.value); });
-                teachers.sort((a, b) => a.localeCompare(b, 'el'));
-                if (teachers.length > 0) {
-                    let lineParts = [region, school, className, subject, ...teachers];
+                
+                let teachersData = [];
+                r.querySelectorAll('select').forEach(sel => {
+                    if (sel.value) {
+                        const selectedText = sel.options[sel.selectedIndex].text;
+                        const cleanName = selectedText.replace(/\s*\([^)]*\)\s*/g, '').trim(); // Βγάζει το (username) από το κείμενο
+                        teachersData.push({ name: cleanName, username: sel.value });
+                    }
+                });
+                teachersData.sort((a, b) => a.name.localeCompare(b.name, 'el'));
+                
+                if (teachersData.length > 0) {
+                    let lineParts = [region, school, className, subject];
+                    teachersData.forEach(t => {
+                        lineParts.push(t.name);     // Προσθέτει το Όνομα
+                        lineParts.push(t.username); // Προσθέτει το Username
+                    });
                     let csvLine = lineParts.map(part => part.includes(",") ? `"${part}"` : part).join(",");
                     csvContent += csvLine + "\n"; teachersStr += csvLine + "\n";
                 }
