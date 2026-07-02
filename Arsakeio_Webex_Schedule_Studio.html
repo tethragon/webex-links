@@ -618,7 +618,7 @@ SHTEAM,1,1,1,1,0,0`;
 ΙΩΑΝΝΙΝΑ,1`;
 
         const PRIMARY_DATA_URL = "https://tethragon.github.io/webex-links/teachers_and_mappings.js";
-        const TEMPLATE_URL = "https://tethragon.github.io/webex-links/webex-links_4all_v3.1_TEMPLATE.html";
+        const TEMPLATE_URL = "./webex-links_4all_v3.1_TEMPLATE.html";
         
         // =========================================================================
         //  !!! FALLBACK URL - ΕΙΣΑΓΕΤΕ ΤΟ URL ΕΔΩ ΣΤΗΝ ΑΠΟ ΚΑΤΩ ΓΡΑΜΜΗ !!!
@@ -658,13 +658,8 @@ SHTEAM,1,1,1,1,0,0`;
                 } catch (fallbackError) {
                     console.error("Critical: Both sources failed.");
                     statusText.style.color = "#d32f2f";
-                    statusText.innerText = "ΣΦΑΛΜΑ: Αδυναμία φόρτωσης δεδομένων εκπαιδευτικών.
-Ελέγξτε τη σύνδεσή σας και κάντε ανανέωση.";
-                    alert("ΣΦΑΛΜΑ ΣΥΣΤΗΜΑΤΟΣ:
-
-Δεν ήταν δυνατή η φόρτωσης των δεδομένων των εκπαιδευτικών από καμία πηγή.
-
-Παρακαλώ ελέγξτε τη σύνδεσή σας στο διαδίκτυο.");
+                    statusText.innerText = "ΣΦΑΛΜΑ: Αδυναμία φόρτωσης δεδομένων εκπαιδευτικών. Ελέγξτε τη σύνδεσή σας και κάντε ανανέωση.";
+                    alert("ΣΦΑΛΜΑ ΣΥΣΤΗΜΑΤΟΣ: Δεν ήταν δυνατή η φόρτωσης των δεδομένων των εκπαιδευτικών από καμία πηγή. Παρακαλώ ελέγξτε τη σύνδεσή σας στο διαδίκτυο.");
                 }
             }
         }
@@ -716,8 +711,7 @@ SHTEAM,1,1,1,1,0,0`;
         // --- PARSING HELPERS ---
         function parseList(text) { 
             if (!text) return [];
-            return text.trim().split('
-').map(s => s.trim()).filter(s => s !== ""); 
+            return text.trim().split('').map(s => s.trim()).filter(s => s !== ""); 
         }
 
         function parseSchoolStructure() {
