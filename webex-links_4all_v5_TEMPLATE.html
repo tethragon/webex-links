@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="el">
-<!-- VERSION: v5.1 -->
+<!-- VERSION: v5.2_2026-10-14 -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -84,6 +84,7 @@
     </div>
     <script>
         const BASE_URL = "https://arsakeio.webex.com/meet/";
+        const REPLACEMENTS_URL = "https://tethragon.github.io/webex-links/antikatastaseis.js";
         const RAW_SCHOOL_NAMES = `
 ΨΥΧΙΚΟ,1,Α' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
 ΨΥΧΙΚΟ,2,Β' ΑΡΣΑΚΕΙΟ ΔΗΜΟΤΙΚΟ ΣΧΟΛΕΙΟ ΨΥΧΙΚΟΥ
@@ -120,7 +121,129 @@
             return "";
         }
 
-        function initApp() {
+        function parseGreekDate(str, isEndOfDay) {
+            if (!str) return null;
+            const clean = str.trim();
+            if (!clean) return null;
+            const parts = clean.split(/[\/\-\.]/);
+            if (parts.length === 3) {
+                let d, m, y;
+                if (parts[0].length === 4) {
+                    y = parseInt(parts[0], 10);
+                    m = parseInt(parts[1], 10) - 1;
+                    d = parseInt(parts[2], 10);
+                } else {
+                    d = parseInt(parts[0], 10);
+                    m = parseInt(parts[1], 10) - 1;
+                    y = parseInt(parts[2], 10);
+                }
+                if (!isNaN(d) && !isNaN(m) && !isNaN(y)) {
+                    if (isEndOfDay) {
+                        return new Date(y, m, d, 23, 59, 59, 999);
+                    } else {
+                        return new Date(y, m, d, 0, 0, 0, 0);
+                    }
+                }
+            }
+            return null;
+        }
+
+        function loadReplacementsScript() {
+            return new Promise((resolve) => {
+                const CACHE_KEY = "cached_webex_antikatastaseis";
+
+                const tryLoadFromCache = () => {
+                    if (!window.RAW_REPLACEMENTS || !window.RAW_REPLACEMENTS.trim()) {
+                        try {
+                            const cached = localStorage.getItem(CACHE_KEY);
+                            if (cached && cached.trim()) {
+                                window.RAW_REPLACEMENTS = cached;
+                            }
+                        } catch (e) {}
+                    }
+                };
+
+                if (window.RAW_REPLACEMENTS && window.RAW_REPLACEMENTS.trim()) {
+                    try { localStorage.setItem(CACHE_KEY, window.RAW_REPLACEMENTS); } catch (e) {}
+                    resolve();
+                    return;
+                }
+
+                const script = document.createElement('script');
+                const cacheBuster = Math.floor(Date.now() / 300000); // ανανέωση ανά 5 λεπτά
+                script.src = REPLACEMENTS_URL + "?v=" + cacheBuster;
+                
+                let resolved = false;
+                const finish = () => {
+                    if (!resolved) {
+                        resolved = true;
+                        if (window.RAW_REPLACEMENTS && window.RAW_REPLACEMENTS.trim()) {
+                            try {
+                                localStorage.setItem(CACHE_KEY, window.RAW_REPLACEMENTS);
+                            } catch (e) {}
+                        } else {
+                            tryLoadFromCache();
+                        }
+                        resolve();
+                    }
+                };
+
+                script.onload = finish;
+                script.onerror = finish;
+                document.head.appendChild(script);
+
+                setTimeout(finish, 2500);
+            });
+        }
+
+        function applyReplacements() {
+            if (!window.RAW_REPLACEMENTS || !window.RAW_REPLACEMENTS.trim()) return;
+            const now = new Date();
+            const activeReplacements = {};
+
+            const lines = window.RAW_REPLACEMENTS.trim().split('\n');
+            lines.forEach(line => {
+                const cleanLine = line.trim();
+                if (!cleanLine || cleanLine.startsWith('#')) return;
+                const parts = cleanLine.split(',').map(s => s.trim());
+                if (parts.length < 3) return;
+
+                const oldUser = parts[0].toLowerCase();
+                const newName = parts[1];
+                const newUser = parts[2];
+                const fromStr = parts[3] || "";
+                const toStr = parts[4] || "";
+
+                if (!oldUser || !newName || !newUser) return;
+
+                const fromDate = parseGreekDate(fromStr, false);
+                const toDate = parseGreekDate(toStr, true);
+
+                const isAfterStart = !fromDate || now >= fromDate;
+                const isBeforeEnd = !toDate || now <= toDate;
+
+                if (isAfterStart && isBeforeEnd) {
+                    activeReplacements[oldUser] = { name: newName, username: newUser };
+                }
+            });
+
+            Object.keys(teacherMap).forEach(subject => {
+                teacherMap[subject].forEach(t => {
+                    const oldKey = (t.username || "").toLowerCase();
+                    if (activeReplacements[oldKey]) {
+                        t.name = activeReplacements[oldKey].name;
+                        t.username = activeReplacements[oldKey].username;
+                    }
+                });
+            });
+        }
+
+        async function initApp() {
+            try {
+                await loadReplacementsScript();
+            } catch(e) {
+                console.warn("Replacements script skipped/failed:", e);
+            }
             document.getElementById('loader-overlay').style.display = 'none';
             parseData();
             initTable();
@@ -171,6 +294,9 @@
                 
                 teacherMap[subject] = teachers;
             });
+
+            // 3. Εφαρμογή Αντικαταστάσεων / Αναπληρώσεων
+            applyReplacements();
         }
 
         function parseTimeRange(rangeStr) {
